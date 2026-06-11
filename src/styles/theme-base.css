@@ -27,6 +27,8 @@
   --accent-foreground: oklch(0.2178 0 0);
   --destructive: oklch(0.5770 0.2450 27.3250); /* restored to warm red — original export was achromatic */
   --destructive-foreground: oklch(1.0000 0 0);
+  --success: oklch(0.5500 0.1300 150.0000); /* status chips: pagado/entregado — universal, never brand-overridden */
+  --success-foreground: oklch(0.9851 0 0);
   --border: oklch(0.9219 0 0);
   --input: oklch(0.9219 0 0);
   --ring: oklch(0.7090 0 0);
@@ -75,6 +77,8 @@
   --accent-foreground: oklch(0.9851 0 0);
   --destructive: oklch(0.7040 0.1910 22.2160); /* warm red adjusted for dark mode */
   --destructive-foreground: oklch(0.9851 0 0);
+  --success: oklch(0.6500 0.1300 150.0000);
+  --success-foreground: oklch(0.2178 0 0);
   --border: oklch(0.2768 0 0);
   --input: oklch(0.3250 0 0);
   --ring: oklch(0.5555 0 0);
@@ -105,6 +109,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

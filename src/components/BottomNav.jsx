@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { BookOpen, Users, Package, TrendingUp } from 'lucide-react'
+import { BookOpen, House, Package, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
 
-// Which tabs each profile sees. Clientes / Ingresos belong to the selling
-// profiles — the buyer only browses and tracks her own orders.
+// Which tabs each profile sees. The buyer's home is the catalog; the
+// retailer's home is her dashboard of shared catalogs.
 const tabs = [
-  { to: '/', label: 'Catálogo', icon: BookOpen, roles: ['buyer', 'retailer', 'wholesaler'] },
-  { to: '/clientes', label: 'Clientes', icon: Users, roles: ['retailer'] },
+  { to: '/', label: 'Catálogo', icon: BookOpen, roles: ['buyer'] },
+  { to: '/', label: 'Inicio', icon: House, roles: ['retailer', 'wholesaler'] },
+  { to: '/catalogo', label: 'Catálogo', icon: BookOpen, roles: ['retailer'] },
   { to: '/pedidos', label: 'Pedidos', icon: Package, roles: ['buyer', 'retailer'] },
   { to: '/ingresos', label: 'Ingresos', icon: TrendingUp, roles: ['retailer', 'wholesaler'] },
 ]

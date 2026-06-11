@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { Check, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/stores/cartStore'
+import { useSessionStore } from '@/stores/sessionStore'
 import { getProduct } from '@/data/products'
 import { colors } from '@/data/colors'
 import { sizeRuns } from '@/data/sizes'
@@ -82,8 +83,10 @@ function Carousel({ images, alt }) {
 
 export function ProductDetailScreen() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const product = getProduct(id)
   const addToCart = useCartStore((s) => s.add)
+  const role = useSessionStore((s) => s.role)
 
   const [colorId, setColorId] = useState(product?.colorIds[0])
   const [size, setSize] = useState(null)
@@ -184,19 +187,26 @@ export function ProductDetailScreen() {
         </section>
       </div>
 
-      {/* Sticky CTA — detail view has no bottom nav, so it owns the bottom edge */}
+      {/* Sticky CTA — detail view has no bottom nav, so it owns the bottom edge.
+          The vendedora shares the item with a clienta; the buyer adds to cart. */}
       <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <Button className="w-full" disabled={!size} onClick={handleAdd}>
-          {added ? (
-            <>
-              <Check aria-hidden="true" /> Agregado al carrito
-            </>
-          ) : size ? (
-            'Agregar al carrito'
-          ) : (
-            'Elige tu talla'
-          )}
-        </Button>
+        {role === 'retailer' ? (
+          <Button className="w-full" onClick={() => navigate(`/compartir?producto=${product.id}`)}>
+            <Share2 aria-hidden="true" /> Compartir con clienta
+          </Button>
+        ) : (
+          <Button className="w-full" disabled={!size} onClick={handleAdd}>
+            {added ? (
+              <>
+                <Check aria-hidden="true" /> Agregado al carrito
+              </>
+            ) : size ? (
+              'Agregar al carrito'
+            ) : (
+              'Elige tu talla'
+            )}
+          </Button>
+        )}
       </div>
     </div>
   )

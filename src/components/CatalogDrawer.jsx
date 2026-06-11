@@ -1,11 +1,18 @@
 import { useCatalogStore } from '@/stores/catalogStore'
+import { useSessionStore } from '@/stores/sessionStore'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+const roles = [
+  { id: 'buyer', label: 'Compradora' },
+  { id: 'retailer', label: 'Vendedora' },
+]
 
 // Catalog selector inside the hamburger drawer — the DSM showcase moment.
 // Selecting a catalog updates data-theme on <html> and the whole app rebrands.
 export function CatalogDrawer({ open, onClose }) {
   const { catalogs, activeCatalog, setCatalog } = useCatalogStore()
+  const { role, setRole } = useSessionStore()
 
   const handleSelect = (catalog) => {
     setCatalog(catalog)
@@ -77,6 +84,27 @@ export function CatalogDrawer({ open, onClose }) {
             )
           })}
         </ul>
+
+        {/* Demo-only: flip between profiles to present both experiences */}
+        <div className="mt-auto border-t p-4">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">Perfil (demo)</p>
+          <div className="flex gap-2">
+            {roles.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setRole(r.id)}
+                aria-pressed={role === r.id}
+                className={cn(
+                  'h-10 flex-1 rounded-md border text-sm font-medium',
+                  role === r.id && 'border-primary bg-primary text-primary-foreground'
+                )}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </aside>
     </>
   )

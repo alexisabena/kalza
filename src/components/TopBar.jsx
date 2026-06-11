@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { Menu, ChevronLeft, ShoppingBag } from 'lucide-react'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useCartStore, selectCount } from '@/stores/cartStore'
+import { useSessionStore } from '@/stores/sessionStore'
 import { CatalogDrawer } from '@/components/CatalogDrawer'
 
 function CartButton() {
@@ -26,13 +27,19 @@ function CartButton() {
 
 export function TopBar() {
   const activeCatalog = useCatalogStore((s) => s.activeCatalog)
+  const role = useSessionStore((s) => s.role)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
-  // Inside a product or the cart the catalog can't change — back instead of menu
-  const showBack = pathname.startsWith('/producto') || pathname === '/carrito'
+  // Inside a product, the cart or the share flow the catalog can't change —
+  // back instead of menu
+  const showBack =
+    pathname.startsWith('/producto') || pathname === '/carrito' || pathname === '/compartir'
   const isCart = pathname === '/carrito'
+  const isShare = pathname === '/compartir'
+  // The cart belongs to the buyer; the vendedora shares instead of buying
+  const showCart = role === 'buyer' && !isCart && !isShare
 
   return (
     <>
@@ -59,10 +66,10 @@ export function TopBar() {
 
         {/* aria-live announces the rebrand to screen readers on catalog switch */}
         <span aria-live="polite" className="truncate text-center text-lg font-bold text-primary">
-          {isCart ? 'Mi carrito' : activeCatalog.brand}
+          {isCart ? 'Mi carrito' : isShare ? 'Compartir' : activeCatalog.brand}
         </span>
 
-        {isCart ? <span aria-hidden="true" /> : <CartButton />}
+        {showCart ? <CartButton /> : <span aria-hidden="true" />}
       </header>
       {!showBack && <CatalogDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />}
     </>

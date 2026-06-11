@@ -1,26 +1,38 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
+import { useSessionStore } from '@/stores/sessionStore'
 import { CatalogoScreen } from '@/screens/CatalogoScreen'
+import { DashboardScreen } from '@/screens/DashboardScreen'
 import { ProductDetailScreen } from '@/screens/ProductDetailScreen'
 import { CartScreen } from '@/screens/CartScreen'
+import { ShareCatalogScreen } from '@/screens/ShareCatalogScreen'
 import { ClientesScreen } from '@/screens/ClientesScreen'
 import { PedidosScreen } from '@/screens/PedidosScreen'
 import { IngresosScreen } from '@/screens/IngresosScreen'
 
+// The buyer's home is the catalog; the retailer's home is her dashboard.
+function Home() {
+  const role = useSessionStore((s) => s.role)
+  return role === 'retailer' ? <DashboardScreen /> : <CatalogoScreen />
+}
+
 function App() {
   const { pathname } = useLocation()
-  // Detail and cart are focused views — no bottom nav, back button instead
-  const immersive = pathname.startsWith('/producto') || pathname === '/carrito'
+  // Focused views — no bottom nav, back button instead
+  const immersive =
+    pathname.startsWith('/producto') || pathname === '/carrito' || pathname === '/compartir'
 
   return (
     <div className="mx-auto min-h-dvh max-w-md">
       <TopBar />
       <main className={immersive ? 'pt-14' : 'pb-[60px] pt-14'}>
         <Routes>
-          <Route path="/" element={<CatalogoScreen />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/catalogo" element={<CatalogoScreen />} />
           <Route path="/producto/:id" element={<ProductDetailScreen />} />
           <Route path="/carrito" element={<CartScreen />} />
+          <Route path="/compartir" element={<ShareCatalogScreen />} />
           <Route path="/clientes" element={<ClientesScreen />} />
           <Route path="/pedidos" element={<PedidosScreen />} />
           <Route path="/ingresos" element={<IngresosScreen />} />
