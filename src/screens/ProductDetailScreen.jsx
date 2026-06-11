@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useCartStore } from '@/stores/cartStore'
 import { getProduct } from '@/data/products'
 import { colors } from '@/data/colors'
 import { sizeRuns } from '@/data/sizes'
@@ -63,11 +64,22 @@ function Carousel({ images, alt }) {
 
 export function ProductDetailScreen() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const product = getProduct(id)
+  const addToCart = useCartStore((s) => s.add)
 
   const [colorId, setColorId] = useState(product?.colorIds[0])
   const [size, setSize] = useState(null)
+  const [added, setAdded] = useState(false)
+  const addedTimer = useRef()
+
+  useEffect(() => () => clearTimeout(addedTimer.current), [])
+
+  const handleAdd = () => {
+    addToCart(product.id, colorId, size)
+    setAdded(true)
+    clearTimeout(addedTimer.current)
+    addedTimer.current = setTimeout(() => setAdded(false), 1500)
+  }
 
   if (!product) {
     return (
@@ -87,17 +99,7 @@ export function ProductDetailScreen() {
 
   return (
     <div className="pb-24">
-      <div className="relative">
-        <Carousel images={product.images} alt={product.name} />
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          aria-label="Regresar"
-          className="absolute left-3 top-3 flex size-12 items-center justify-center rounded-full bg-background/80 text-foreground backdrop-blur-sm"
-        >
-          <ChevronLeft className="size-5" aria-hidden="true" />
-        </button>
-      </div>
+      <Carousel images={product.images} alt={product.name} />
 
       <div className="flex flex-col gap-5 p-4">
         <div>
@@ -164,10 +166,18 @@ export function ProductDetailScreen() {
         </section>
       </div>
 
-      {/* Sticky CTA — sits above the bottom nav */}
-      <div className="fixed inset-x-0 bottom-[60px] z-10 mx-auto max-w-md border-t bg-background p-3">
-        <Button className="w-full" disabled={!size}>
-          {size ? 'Agregar al carrito' : 'Elige tu talla'}
+      {/* Sticky CTA — detail view has no bottom nav, so it owns the bottom edge */}
+      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <Button className="w-full" disabled={!size} onClick={handleAdd}>
+          {added ? (
+            <>
+              <Check aria-hidden="true" /> Agregado al carrito
+            </>
+          ) : size ? (
+            'Agregar al carrito'
+          ) : (
+            'Elige tu talla'
+          )}
         </Button>
       </div>
     </div>

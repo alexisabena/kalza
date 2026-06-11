@@ -1,19 +1,53 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { BookOpen, Users, Package, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSessionStore } from '@/stores/sessionStore'
 
+// Which tabs each profile sees. Clientes / Ingresos belong to the selling
+// profiles — the buyer only browses and tracks her own orders.
 const tabs = [
-  { to: '/', label: 'Catálogo', icon: BookOpen },
-  { to: '/clientes', label: 'Clientes', icon: Users },
-  { to: '/pedidos', label: 'Pedidos', icon: Package },
-  { to: '/ingresos', label: 'Ingresos', icon: TrendingUp },
+  { to: '/', label: 'Catálogo', icon: BookOpen, roles: ['buyer', 'retailer', 'wholesaler'] },
+  { to: '/clientes', label: 'Clientes', icon: Users, roles: ['retailer'] },
+  { to: '/pedidos', label: 'Pedidos', icon: Package, roles: ['buyer', 'retailer'] },
+  { to: '/ingresos', label: 'Ingresos', icon: TrendingUp, roles: ['retailer', 'wholesaler'] },
 ]
 
+// Hide when scrolling down, reappear on scroll up — images take priority.
+function useHideOnScrollDown() {
+  const [hidden, setHidden] = useState(false)
+
+  useEffect(() => {
+    let last = window.scrollY
+    const onScroll = () => {
+      const y = window.scrollY
+      if (y < 16) setHidden(false)
+      else if (y > last + 4) setHidden(true)
+      else if (y < last - 4) setHidden(false)
+      last = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return hidden
+}
+
 export function BottomNav() {
+  const role = useSessionStore((s) => s.role)
+  const hidden = useHideOnScrollDown()
+  const visibleTabs = tabs.filter((t) => t.roles.includes(role))
+
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t bg-background pb-[env(safe-area-inset-bottom)]">
+    <nav
+      className={cn(
+        'fixed inset-x-0 bottom-0 z-20 border-t bg-background pb-[env(safe-area-inset-bottom)]',
+        'motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-in-out',
+        hidden && 'translate-y-full'
+      )}
+    >
       <div className="flex h-[60px]">
-        {tabs.map(({ to, label, icon: Icon }) => (
+        {visibleTabs.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
