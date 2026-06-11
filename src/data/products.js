@@ -1,11 +1,12 @@
 // Shoe items — the product table of the mock database.
 // colorIds reference colors.js, sizeRun references sizes.js,
 // availability per color/size lives in inventory.js.
-// Images: 1–3 per product at /images/products/<brand>/<id>-1.jpg … -3.jpg.
+// Images: 1–3 per product at /images/products/<brand>/<id>-1.webp … -3.webp,
+// produced by scripts/optimize-images.py from the raw dumps in images-raw/.
 // Missing files are skipped by the carousel / replaced by a placeholder in the grid.
 
 const img = (brand, id, n) =>
-  Array.from({ length: n }, (_, i) => `/images/products/${brand}/${id}-${i + 1}.jpg`)
+  Array.from({ length: n }, (_, i) => `/images/products/${brand}/${id}-${i + 1}.webp`)
 
 export const products = [
   // ── Kalza — everyday women's shoes ─────────────────────────────

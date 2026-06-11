@@ -8,13 +8,16 @@ import { colors } from '@/data/colors'
 import { sizeRuns } from '@/data/sizes'
 import { getStock } from '@/data/inventory'
 import { ProductImage } from '@/components/ProductImage'
+import { Lightbox } from '@/components/Lightbox'
 import { Button } from '@/components/ui/button'
 
 // Full-width carousel with scroll-snap. Slides whose image file doesn't exist
 // yet are dropped; if none exist a single placeholder slide remains.
+// Tapping a photo opens the lightbox on that photo.
 function Carousel({ images, alt }) {
   const [failed, setFailed] = useState(() => new Set())
   const [active, setActive] = useState(0)
+  const [lightboxAt, setLightboxAt] = useState(null)
   const slides = images.filter((src) => !failed.has(src))
 
   const markFailed = (src) =>
@@ -36,15 +39,30 @@ function Carousel({ images, alt }) {
         className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none]"
       >
         {slides.map((src, i) => (
-          <img
+          <button
             key={src}
-            src={src}
-            alt={`${alt} — foto ${i + 1}`}
-            onError={() => markFailed(src)}
-            className="aspect-[4/5] w-full shrink-0 snap-center bg-muted object-cover"
-          />
+            type="button"
+            onClick={() => setLightboxAt(i)}
+            aria-label={`Ampliar foto ${i + 1} de ${alt}`}
+            className="w-full shrink-0 snap-center cursor-zoom-in"
+          >
+            <img
+              src={src}
+              alt={`${alt} — foto ${i + 1}`}
+              onError={() => markFailed(src)}
+              className="aspect-[4/5] w-full bg-muted object-cover"
+            />
+          </button>
         ))}
       </div>
+      {lightboxAt !== null && (
+        <Lightbox
+          images={slides}
+          alt={alt}
+          initialIndex={lightboxAt}
+          onClose={() => setLightboxAt(null)}
+        />
+      )}
       {slides.length > 1 && (
         <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
           {slides.map((src, i) => (
