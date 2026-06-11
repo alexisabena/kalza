@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
 import { CatalogoScreen } from '@/screens/CatalogoScreen'
+import { ProductDetailScreen } from '@/screens/ProductDetailScreen'
 import { ClientesScreen } from '@/screens/ClientesScreen'
 import { PedidosScreen } from '@/screens/PedidosScreen'
 import { IngresosScreen } from '@/screens/IngresosScreen'
@@ -13,6 +14,7 @@ function App() {
       <main className="pb-[60px] pt-14">
         <Routes>
           <Route path="/" element={<CatalogoScreen />} />
+          <Route path="/producto/:id" element={<ProductDetailScreen />} />
           <Route path="/clientes" element={<ClientesScreen />} />
           <Route path="/pedidos" element={<PedidosScreen />} />
           <Route path="/ingresos" element={<IngresosScreen />} />
