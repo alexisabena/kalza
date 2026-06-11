@@ -1,0 +1,5 @@
+/* Import order matters: base theme (:root) first, brand overrides after.
+   [data-theme] selectors win over :root by specificity. */
+@import './theme-base.css';
+@import './themes/brand-elegant.css';
+@import './themes/brand-kids.css';

@@ -1,0 +1,11 @@
+/* Brand: Kids catalog — display name "Pasos"
+   Overrides: primary color, radius, font only
+   Everything else inherits from :root (theme-base.css)
+*/
+
+[data-theme="brand-kids"] {
+  --primary: oklch(0.6200 0.1900 260);     /* bright blue */
+  --primary-foreground: oklch(0.9850 0 0); /* white on blue */
+  --radius: 0.75rem;                       /* round corners */
+  --font-sans: Montserrat, ui-sans-serif, sans-serif, system-ui;
+}

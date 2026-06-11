@@ -1,0 +1,11 @@
+/* Brand: Elegant catalog — display name "Élite"
+   Overrides: primary color, radius, font only
+   Everything else inherits from :root (theme-base.css)
+*/
+
+[data-theme="brand-elegant"] {
+  --primary: oklch(0.3500 0.0800 260);     /* dark, desaturated blue */
+  --primary-foreground: oklch(0.9850 0 0); /* white on dark */
+  --radius: 0.1rem;                        /* sharper than Kalza base */
+  --font-sans: "DM Sans", ui-sans-serif, sans-serif, system-ui;
+}
