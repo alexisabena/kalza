@@ -5,7 +5,10 @@ import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
 import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
 import { getProduct } from '@/data/products'
-import { orderSplit, splitAmount, itemTotal, mxn } from '@/data/pricing'
+import { orderSplit, splitAmount, itemTotal, mxn, SELLER_MARGIN } from '@/data/pricing'
+
+const sellerPct = Math.round(SELLER_MARGIN * 100)
+const wholesalerPct = 100 - sellerPct
 
 // Income recognized once the buyer has paid (pagado → recolectado → entregado).
 const EARNED = new Set(['pagado', 'recolectado', 'entregado'])
@@ -199,18 +202,23 @@ export function IngresosScreen() {
             <p className="text-lg font-semibold">{mxn(totals.total)}</p>
           </div>
           <div className="flex-1 rounded-xl border p-3">
-            <p className="text-xs text-muted-foreground">Mayorista</p>
+            <p className="text-xs text-muted-foreground">
+              Mayorista <span className="font-medium">· {wholesalerPct}%</span>
+            </p>
             <p className="text-lg font-semibold">{mxn(totals.wholesaler)}</p>
           </div>
         </div>
         <div className="rounded-xl bg-primary p-4 text-primary-foreground">
-          <p className="text-sm opacity-90">Para ti</p>
+          <p className="text-sm opacity-90">
+            Para ti <span className="font-medium">· {sellerPct}%</span>
+          </p>
           <p className="text-3xl font-bold">{mxn(totals.seller)}</p>
         </div>
       </div>
 
       {/* Listing of paid orders, 3 columns: total / mayorista / para ti */}
       <section aria-label="Pedidos pagados">
+        <h2 className="mb-2 font-semibold">Pedidos pagados</h2>
         {inPeriod.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No hay pedidos pagados en este periodo.
