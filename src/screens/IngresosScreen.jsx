@@ -1,104 +1,104 @@
-import { catalogs } from '@/data/catalogs'
+import { Link } from 'react-router-dom'
+import { useSessionStore } from '@/stores/sessionStore'
+import { useClientsStore } from '@/stores/clientsStore'
+import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
+import { getProduct } from '@/data/products'
+import { orderSplit, mxn, SELLER_MARGIN } from '@/data/pricing'
 
-// Mock monthly revenue per catalog (MXN). Top catalogs by revenue get a
-// line each; one total summary figure — both views in the same screen
-// (open-questions.md › Income summary layout).
-const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun']
-const revenue = {
-  'cat-001': [4200, 4800, 5100, 4600, 5400, 6100],
-  'cat-002': [2800, 3500, 3900, 4400, 5200, 5900],
-  'cat-003': [1900, 2400, 2100, 2600, 3100, 3400],
-}
+const formatDate = (iso) =>
+  new Date(`${iso}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
 
-const mxn = (n) => `$${n.toLocaleString('es-MX')}`
-
-const W = 320
-const H = 150
-const PAD = 8
-
-function LineChart({ series, max }) {
-  const x = (i) => PAD + (i * (W - PAD * 2)) / (months.length - 1)
-  const y = (v) => H - PAD - (v / max) * (H - PAD * 2)
-
-  return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      role="img"
-      aria-label="Ingresos mensuales por catálogo"
-      className="w-full"
-    >
-      {series.map(({ catalogId, data }, idx) => {
-        const points = data.map((v, i) => `${x(i)},${y(v)}`).join(' ')
-        const stroke = `var(--chart-${idx + 1})`
-        const last = data.length - 1
-        return (
-          <g key={catalogId}>
-            <polyline
-              points={points}
-              fill="none"
-              stroke={stroke}
-              strokeWidth="2.5"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
-            {/* end-of-line indicator */}
-            <circle cx={x(last)} cy={y(data[last])} r="4" fill={stroke} />
-          </g>
-        )
-      })}
-    </svg>
-  )
-}
+// Income recognized once the buyer has paid (pagado → recolectado → entregado).
+const EARNED = new Set(['pagado', 'recolectado', 'entregado'])
 
 export function IngresosScreen() {
-  // Top catalogs by accumulated revenue (spec says top 5; demo has 3)
-  const ranked = catalogs
-    .map((c) => ({
-      catalogId: c.id,
-      brand: c.brand,
-      data: revenue[c.id] ?? [],
-      total: (revenue[c.id] ?? []).reduce((a, b) => a + b, 0),
-    }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 5)
+  const role = useSessionStore((s) => s.role)
+  const orders = useOrdersStore((s) => s.orders)
+  const clients = useClientsStore((s) => s.clients)
+  const clientName = (id) => clients.find((c) => c.id === id)?.name ?? 'Clienta'
 
-  const grandTotal = ranked.reduce((sum, r) => sum + r.total, 0)
-  const max = Math.max(...ranked.flatMap((r) => r.data))
+  const isWholesaler = role === 'wholesaler'
+  const mineKey = isWholesaler ? 'wholesaler' : 'seller'
+  const theirsKey = isWholesaler ? 'seller' : 'wholesaler'
+  const mineLabel = isWholesaler ? 'Para el mayorista' : 'Para ti'
+  const theirsLabel = isWholesaler ? 'Para la vendedora' : 'Para el mayorista'
+
+  const earned = orders
+    .filter((o) => EARNED.has(effectiveStatus(o)))
+    .sort((a, b) => b.date.localeCompare(a.date))
+
+  const totals = earned.reduce(
+    (acc, o) => {
+      const s = orderSplit(o)
+      acc.total += s.total
+      acc.seller += s.seller
+      acc.wholesaler += s.wholesaler
+      return acc
+    },
+    { total: 0, seller: 0, wholesaler: 0 }
+  )
 
   return (
     <div className="flex flex-col gap-5 p-4">
       <h1 className="text-2xl font-bold">Ingresos</h1>
 
-      {/* Total summary figure */}
-      <div className="rounded-xl bg-muted p-4">
-        <p className="text-sm text-muted-foreground">Total del semestre</p>
-        <p className="text-3xl font-bold text-primary">{mxn(grandTotal)}</p>
+      {/* My earnings — the headline figure for this profile */}
+      <div className="rounded-xl bg-primary p-4 text-primary-foreground">
+        <p className="text-sm opacity-90">{mineLabel}</p>
+        <p className="text-3xl font-bold">{mxn(totals[mineKey])}</p>
+        <p className="mt-1 text-xs opacity-80">
+          {isWholesaler
+            ? `${Math.round((1 - SELLER_MARGIN) * 100)}% de cada pedido pagado`
+            : `${Math.round(SELLER_MARGIN * 100)}% de cada pedido pagado`}
+        </p>
       </div>
 
-      {/* Top catalogs by revenue */}
-      <section aria-label="Ingresos por catálogo">
-        <h2 className="mb-2 font-semibold">Por catálogo</h2>
-        <div className="rounded-xl border p-3">
-          <LineChart series={ranked} max={max} />
-          <div className="mt-1 flex justify-between px-1 text-xs text-muted-foreground">
-            {months.map((m) => (
-              <span key={m}>{m}</span>
-            ))}
-          </div>
+      {/* The split, disclosed in full */}
+      <div className="flex gap-3">
+        <div className="flex-1 rounded-xl border p-3">
+          <p className="text-xs text-muted-foreground">Total cobrado</p>
+          <p className="text-lg font-semibold">{mxn(totals.total)}</p>
         </div>
-        <ul className="mt-3 flex flex-col gap-2">
-          {ranked.map((r, idx) => (
-            <li key={r.catalogId} className="flex items-center gap-2 text-sm">
-              <span
-                className="size-2.5 rounded-full"
-                style={{ backgroundColor: `var(--chart-${idx + 1})` }}
-                aria-hidden="true"
-              />
-              <span className="flex-1">{r.brand}</span>
-              <span className="font-semibold">{mxn(r.total)}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="flex-1 rounded-xl border p-3">
+          <p className="text-xs text-muted-foreground">{theirsLabel}</p>
+          <p className="text-lg font-semibold">{mxn(totals[theirsKey])}</p>
+        </div>
+      </div>
+
+      {/* Listing of every paid / delivered order */}
+      <section aria-label="Pedidos pagados">
+        <h2 className="mb-2 font-semibold">Pedidos pagados</h2>
+        {earned.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aquí verás tus ingresos cuando se paguen los pedidos.
+          </p>
+        ) : (
+          <ul className="divide-y">
+            {earned.map((order) => {
+              const split = orderSplit(order)
+              const first = getProduct(order.items[0]?.productId)?.name ?? 'Pedido'
+              const extra = order.items.length - 1
+              return (
+                <li key={order.id}>
+                  <Link to={`/pedido/${order.id}`} className="flex items-center gap-3 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{clientName(order.clientId)}</p>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {first}
+                        {extra > 0 && ` +${extra}`} · {formatDate(order.date)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      {/* This profile's cut, with the full total underneath */}
+                      <p className="font-semibold text-primary">{mxn(split[mineKey])}</p>
+                      <p className="text-xs text-muted-foreground">de {mxn(split.total)}</p>
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </section>
     </div>
   )
