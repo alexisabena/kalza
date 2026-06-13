@@ -1,33 +1,130 @@
-import { Link } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
 import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
 import { getProduct } from '@/data/products'
-import { orderSplit, mxn, SELLER_MARGIN } from '@/data/pricing'
-
-const formatDate = (iso) =>
-  new Date(`${iso}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+import { orderSplit, splitAmount, itemTotal, mxn } from '@/data/pricing'
 
 // Income recognized once the buyer has paid (pagado → recolectado → entregado).
 const EARNED = new Set(['pagado', 'recolectado', 'entregado'])
 
+// es-MX gives "junio de 2026" → capitalize just the first letter
+const monthLabel = (key) => {
+  const s = new Date(`${key}-01T12:00:00`).toLocaleDateString('es-MX', {
+    month: 'long',
+    year: 'numeric',
+  })
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+// Money cell — the seller's column is the highlighted one.
+function Amount({ value, mine }) {
+  return (
+    <span
+      className={cn(
+        'w-16 shrink-0 text-right text-sm tabular-nums',
+        mine ? 'font-semibold text-primary' : 'text-muted-foreground'
+      )}
+    >
+      {mxn(value)}
+    </span>
+  )
+}
+
+function OrderRow({ order, clientName }) {
+  const [open, setOpen] = useState(false)
+  const split = orderSplit(order)
+  const date = new Date(`${order.date}T12:00:00`).toLocaleDateString('es-MX', {
+    day: 'numeric',
+    month: 'short',
+  })
+
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 py-3 text-left"
+      >
+        <ChevronDown
+          className={cn('size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')}
+          aria-hidden="true"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium">{clientName}</span>
+          <span className="block text-xs text-muted-foreground">{date}</span>
+        </span>
+        <Amount value={split.total} />
+        <Amount value={split.wholesaler} />
+        <Amount value={split.seller} mine />
+      </button>
+
+      {open && (
+        <ul className="mb-2 ml-6 border-l pl-3">
+          {order.items.map((item) => {
+            const product = getProduct(item.productId)
+            if (!product) return null
+            const s = splitAmount(itemTotal(item))
+            return (
+              <li
+                key={`${item.productId}|${item.colorId}|${item.size}`}
+                className="flex items-center gap-2 py-2"
+              >
+                <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+                  {product.name}
+                  {item.qty > 1 && ` ×${item.qty}`}
+                </span>
+                <Amount value={s.total} />
+                <Amount value={s.wholesaler} />
+                <Amount value={s.seller} mine />
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </li>
+  )
+}
+
 export function IngresosScreen() {
-  const role = useSessionStore((s) => s.role)
-  const orders = useOrdersStore((s) => s.orders)
   const clients = useClientsStore((s) => s.clients)
+  const orders = useOrdersStore((s) => s.orders)
   const clientName = (id) => clients.find((c) => c.id === id)?.name ?? 'Clienta'
 
-  const isWholesaler = role === 'wholesaler'
-  const mineKey = isWholesaler ? 'wholesaler' : 'seller'
-  const theirsKey = isWholesaler ? 'seller' : 'wholesaler'
-  const mineLabel = isWholesaler ? 'Para el mayorista' : 'Para ti'
-  const theirsLabel = isWholesaler ? 'Para la vendedora' : 'Para el mayorista'
+  const earned = useMemo(
+    () =>
+      orders
+        .filter((o) => EARNED.has(effectiveStatus(o)))
+        .sort((a, b) => b.date.localeCompare(a.date)),
+    [orders]
+  )
 
-  const earned = orders
-    .filter((o) => EARNED.has(effectiveStatus(o)))
-    .sort((a, b) => b.date.localeCompare(a.date))
+  // Periods present in the data, plus the current one so it's always selectable
+  const today = new Date().toISOString().slice(0, 10)
+  const { monthKeys, yearKeys } = useMemo(() => {
+    const months = new Set([today.slice(0, 7)])
+    const years = new Set([today.slice(0, 4)])
+    earned.forEach((o) => {
+      months.add(o.date.slice(0, 7))
+      years.add(o.date.slice(0, 4))
+    })
+    return {
+      monthKeys: [...months].sort().reverse(),
+      yearKeys: [...years].sort().reverse(),
+    }
+  }, [earned, today])
 
-  const totals = earned.reduce(
+  const [view, setView] = useState('month') // 'month' | 'year'
+  const [month, setMonth] = useState(today.slice(0, 7))
+  const [year, setYear] = useState(today.slice(0, 4))
+
+  const period = view === 'month' ? month : year
+  const inPeriod = earned.filter((o) => o.date.startsWith(period))
+
+  const totals = inPeriod.reduce(
     (acc, o) => {
       const s = orderSplit(o)
       acc.total += s.total
@@ -40,64 +137,99 @@ export function IngresosScreen() {
 
   return (
     <div className="flex flex-col gap-5 p-4">
-      <h1 className="text-2xl font-bold">Ingresos</h1>
-
-      {/* My earnings — the headline figure for this profile */}
-      <div className="rounded-xl bg-primary p-4 text-primary-foreground">
-        <p className="text-sm opacity-90">{mineLabel}</p>
-        <p className="text-3xl font-bold">{mxn(totals[mineKey])}</p>
-        <p className="mt-1 text-xs opacity-80">
-          {isWholesaler
-            ? `${Math.round((1 - SELLER_MARGIN) * 100)}% de cada pedido pagado`
-            : `${Math.round(SELLER_MARGIN * 100)}% de cada pedido pagado`}
-        </p>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-bold">Ingresos</h1>
+          {/* View: month / year */}
+          <div className="flex rounded-md border p-0.5 text-sm">
+            {[
+              ['month', 'Mes'],
+              ['year', 'Año'],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setView(id)}
+                aria-pressed={view === id}
+                className={cn(
+                  'rounded px-3 py-1 font-medium',
+                  view === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Period sub-select for the chosen view */}
+        {view === 'month' ? (
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            aria-label="Elige el mes"
+            className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+          >
+            {monthKeys.map((k) => (
+              <option key={k} value={k}>
+                {monthLabel(k)}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <select
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            aria-label="Elige el año"
+            className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+          >
+            {yearKeys.map((k) => (
+              <option key={k} value={k}>
+                {k}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
-      {/* The split, disclosed in full */}
-      <div className="flex gap-3">
-        <div className="flex-1 rounded-xl border p-3">
-          <p className="text-xs text-muted-foreground">Total cobrado</p>
-          <p className="text-lg font-semibold">{mxn(totals.total)}</p>
+      {/* Two small cards, then the seller's earnings highlighted */}
+      <div className="flex flex-col gap-3">
+        <div className="flex gap-3">
+          <div className="flex-1 rounded-xl border p-3">
+            <p className="text-xs text-muted-foreground">Total cobrado</p>
+            <p className="text-lg font-semibold">{mxn(totals.total)}</p>
+          </div>
+          <div className="flex-1 rounded-xl border p-3">
+            <p className="text-xs text-muted-foreground">Mayorista</p>
+            <p className="text-lg font-semibold">{mxn(totals.wholesaler)}</p>
+          </div>
         </div>
-        <div className="flex-1 rounded-xl border p-3">
-          <p className="text-xs text-muted-foreground">{theirsLabel}</p>
-          <p className="text-lg font-semibold">{mxn(totals[theirsKey])}</p>
+        <div className="rounded-xl bg-primary p-4 text-primary-foreground">
+          <p className="text-sm opacity-90">Para ti</p>
+          <p className="text-3xl font-bold">{mxn(totals.seller)}</p>
         </div>
       </div>
 
-      {/* Listing of every paid / delivered order */}
+      {/* Listing of paid orders, 3 columns: total / mayorista / para ti */}
       <section aria-label="Pedidos pagados">
-        <h2 className="mb-2 font-semibold">Pedidos pagados</h2>
-        {earned.length === 0 ? (
+        {inPeriod.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aquí verás tus ingresos cuando se paguen los pedidos.
+            No hay pedidos pagados en este periodo.
           </p>
         ) : (
-          <ul className="divide-y">
-            {earned.map((order) => {
-              const split = orderSplit(order)
-              const first = getProduct(order.items[0]?.productId)?.name ?? 'Pedido'
-              const extra = order.items.length - 1
-              return (
-                <li key={order.id}>
-                  <Link to={`/pedido/${order.id}`} className="flex items-center gap-3 py-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{clientName(order.clientId)}</p>
-                      <p className="truncate text-sm text-muted-foreground">
-                        {first}
-                        {extra > 0 && ` +${extra}`} · {formatDate(order.date)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      {/* This profile's cut, with the full total underneath */}
-                      <p className="font-semibold text-primary">{mxn(split[mineKey])}</p>
-                      <p className="text-xs text-muted-foreground">de {mxn(split.total)}</p>
-                    </div>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
+          <>
+            <div className="flex items-center gap-2 border-b pb-2 text-xs font-medium text-muted-foreground">
+              <span className="size-4 shrink-0" aria-hidden="true" />
+              <span className="flex-1">Pedido</span>
+              <span className="w-16 shrink-0 text-right">Total</span>
+              <span className="w-16 shrink-0 text-right">Mayorista</span>
+              <span className="w-16 shrink-0 text-right text-primary">Para ti</span>
+            </div>
+            <ul className="divide-y">
+              {inPeriod.map((order) => (
+                <OrderRow key={order.id} order={order} clientName={clientName(order.clientId)} />
+              ))}
+            </ul>
+          </>
         )}
       </section>
     </div>

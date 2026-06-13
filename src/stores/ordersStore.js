@@ -76,6 +76,38 @@ const seed = [
     items: [{ productId: 'e-04', colorId: 'dorado', size: '23', qty: 1 }],
     messages: [],
   },
+  // Earlier delivered orders so the period selector (month/year) has options.
+  // o-06 mixes two catalogs in one order for the same buyer.
+  {
+    id: 'o-06',
+    clientId: 'c-01',
+    date: '2026-05-20',
+    status: 'entregado',
+    payDeadline: null,
+    items: [
+      { productId: 'k-01', colorId: 'nude', size: '24', qty: 1 },
+      { productId: 'e-06', colorId: 'champana', size: '23', qty: 1 },
+    ],
+    messages: [],
+  },
+  {
+    id: 'o-07',
+    clientId: 'c-05',
+    date: '2026-05-08',
+    status: 'entregado',
+    payDeadline: null,
+    items: [{ productId: 'p-01', colorId: 'azul', size: '18', qty: 1 }],
+    messages: [],
+  },
+  {
+    id: 'o-08',
+    clientId: 'c-02',
+    date: '2025-11-15',
+    status: 'entregado',
+    payDeadline: null,
+    items: [{ productId: 'k-06', colorId: 'camel', size: '25', qty: 1 }],
+    messages: [],
+  },
 ]
 
 // An apartado order past its payment window is lost
@@ -143,7 +175,7 @@ export const useOrdersStore = create(
     }),
     {
       name: 'kalza-orders',
-      version: 1, // v0 used the vendedora-confirms model — reseed
+      version: 2, // v0 vendedora-confirms; v2 adds dated history for Ingresos
       migrate: () => ({ orders: seed }),
     }
   )
