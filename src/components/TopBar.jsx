@@ -35,7 +35,10 @@ export function TopBar() {
   // Inside a product, the cart or the share flow the catalog can't change —
   // back instead of menu
   const showBack =
-    pathname.startsWith('/producto') || pathname === '/carrito' || pathname === '/compartir'
+    pathname.startsWith('/producto') ||
+    pathname.startsWith('/pedido/') ||
+    pathname === '/carrito' ||
+    pathname === '/compartir'
   const isCart = pathname === '/carrito'
   const isShare = pathname === '/compartir'
   // The cart belongs to the buyer; the vendedora shares instead of buying

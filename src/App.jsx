@@ -7,6 +7,7 @@ import { DashboardScreen } from '@/screens/DashboardScreen'
 import { ProductDetailScreen } from '@/screens/ProductDetailScreen'
 import { CartScreen } from '@/screens/CartScreen'
 import { ShareCatalogScreen } from '@/screens/ShareCatalogScreen'
+import { OrderDetailScreen } from '@/screens/OrderDetailScreen'
 import { ClientesScreen } from '@/screens/ClientesScreen'
 import { PedidosScreen } from '@/screens/PedidosScreen'
 import { IngresosScreen } from '@/screens/IngresosScreen'
@@ -21,7 +22,10 @@ function App() {
   const { pathname } = useLocation()
   // Focused views — no bottom nav, back button instead
   const immersive =
-    pathname.startsWith('/producto') || pathname === '/carrito' || pathname === '/compartir'
+    pathname.startsWith('/producto') ||
+    pathname.startsWith('/pedido/') || // note the slash: /pedidos is a tab, /pedido/:id is not
+    pathname === '/carrito' ||
+    pathname === '/compartir'
 
   return (
     <div className="mx-auto min-h-dvh max-w-md">
@@ -35,6 +39,7 @@ function App() {
           <Route path="/compartir" element={<ShareCatalogScreen />} />
           <Route path="/clientes" element={<ClientesScreen />} />
           <Route path="/pedidos" element={<PedidosScreen />} />
+          <Route path="/pedido/:id" element={<OrderDetailScreen />} />
           <Route path="/ingresos" element={<IngresosScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

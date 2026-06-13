@@ -1,7 +1,8 @@
+import { Link } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
-import { orders } from '@/data/orders'
+import { useOrdersStore } from '@/stores/ordersStore'
 import { getProduct } from '@/data/products'
 import { StatusChip } from '@/components/StatusChip'
 
@@ -11,63 +12,67 @@ const formatDate = (iso) =>
 const orderTotal = (order) =>
   order.items.reduce((sum, i) => sum + (getProduct(i.productId)?.price ?? 0) * i.qty, 0)
 
-// Active orders. The conversation with the clienta lives here too —
-// each order can be discussed (thread view pending).
-function RetailerOrders() {
+function OrderRow({ order, title }) {
+  const pieces = order.items.reduce((n, i) => n + i.qty, 0)
+  return (
+    <li>
+      <Link to={`/pedido/${order.id}`} className="flex items-center gap-3 py-3">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-primary">
+          {title.charAt(0)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium">{title}</p>
+          <p className="text-sm text-muted-foreground">
+            {pieces} {pieces === 1 ? 'artículo' : 'artículos'} ·{' '}
+            <span className="font-semibold text-primary">
+              ${orderTotal(order).toLocaleString('es-MX')}
+            </span>{' '}
+            · {formatDate(order.date)}
+          </p>
+        </div>
+        {order.messages.length > 0 && (
+          <span
+            className="flex items-center gap-1 text-sm text-muted-foreground"
+            aria-label={`${order.messages.length} mensajes`}
+          >
+            <MessageCircle className="size-4" aria-hidden="true" />
+            {order.messages.length}
+          </span>
+        )}
+        <StatusChip status={order.status} />
+      </Link>
+    </li>
+  )
+}
+
+// Active orders — the conversation with the other side lives inside each one.
+export function PedidosScreen() {
+  const { role, buyerClientId } = useSessionStore()
+  const orders = useOrdersStore((s) => s.orders)
   const clients = useClientsStore((s) => s.clients)
   const clientName = (id) => clients.find((c) => c.id === id)?.name ?? 'Clienta'
 
+  const isBuyer = role !== 'retailer'
+  const visible = isBuyer ? orders.filter((o) => o.clientId === buyerClientId) : orders
+
   return (
     <div className="flex flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold">Pedidos</h1>
-      <ul className="divide-y">
-        {orders.map((order) => {
-          const pieces = order.items.reduce((n, i) => n + i.qty, 0)
-          return (
-            <li key={order.id} className="flex items-center gap-3 py-3">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-primary">
-                {clientName(order.clientId).charAt(0)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{clientName(order.clientId)}</p>
-                <p className="text-sm text-muted-foreground">
-                  {pieces} {pieces === 1 ? 'artículo' : 'artículos'} ·{' '}
-                  <span className="font-semibold text-primary">
-                    ${orderTotal(order).toLocaleString('es-MX')}
-                  </span>{' '}
-                  · {formatDate(order.date)}
-                </p>
-              </div>
-              {order.messages > 0 && (
-                <span
-                  className="flex items-center gap-1 text-sm text-muted-foreground"
-                  aria-label={`${order.messages} mensajes`}
-                >
-                  <MessageCircle className="size-4" aria-hidden="true" />
-                  {order.messages}
-                </span>
-              )}
-              <StatusChip status={order.status} />
-            </li>
-          )
-        })}
-      </ul>
+      <h1 className="text-2xl font-bold">{isBuyer ? 'Mis pedidos' : 'Pedidos'}</h1>
+      {visible.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {isBuyer
+            ? 'Aquí verás tus pedidos cuando apartes algo del catálogo.'
+            : 'Aún no hay pedidos activos.'}
+        </p>
+      ) : (
+        <ul className="divide-y">
+          {visible.map((order) => {
+            const pieces = order.items.map((i) => getProduct(i.productId)?.name).filter(Boolean)
+            const title = isBuyer ? pieces[0] ?? 'Pedido' : clientName(order.clientId)
+            return <OrderRow key={order.id} order={order} title={title} />
+          })}
+        </ul>
+      )}
     </div>
   )
-}
-
-function BuyerOrders() {
-  return (
-    <div className="flex flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold">Mis pedidos</h1>
-      <p className="text-sm text-muted-foreground">
-        Aquí verás tus pedidos cuando apartes algo del catálogo.
-      </p>
-    </div>
-  )
-}
-
-export function PedidosScreen() {
-  const role = useSessionStore((s) => s.role)
-  return role === 'retailer' ? <RetailerOrders /> : <BuyerOrders />
 }

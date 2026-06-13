@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { X, ShoppingBag } from 'lucide-react'
 import { useCartStore } from '@/stores/cartStore'
+import { useOrdersStore } from '@/stores/ordersStore'
+import { useSessionStore } from '@/stores/sessionStore'
 import { getProduct } from '@/data/products'
 import { catalogs } from '@/data/catalogs'
 import { colors } from '@/data/colors'
@@ -47,7 +49,23 @@ function CartLine({ item, onRemove }) {
 }
 
 export function CartScreen() {
-  const { items, remove } = useCartStore()
+  const { items, remove, clear } = useCartStore()
+  const place = useOrdersStore((s) => s.place)
+  const buyerClientId = useSessionStore((s) => s.buyerClientId)
+  const navigate = useNavigate()
+
+  // Step 1 of the double confirmation: the clienta confirms her intent.
+  // The vendedora confirms on her side before the order is real.
+  const handlePlace = () => {
+    const catalogIds = [...new Set(items.map((i) => getProduct(i.productId)?.catalogId))]
+    place({
+      clientId: buyerClientId,
+      items: items.map(({ productId, colorId, size, qty }) => ({ productId, colorId, size, qty })),
+      catalogIds,
+    })
+    clear()
+    navigate('/pedidos')
+  }
 
   if (items.length === 0) {
     return (
@@ -127,8 +145,7 @@ export function CartScreen() {
         )}
 
         <div className="mt-4 flex flex-col gap-2">
-          {/* TODO: double confirmation flow — apartar notifies the vendedora (step 1) */}
-          <Button className="w-full">Apartar pedido</Button>
+          <Button className="w-full" onClick={handlePlace}>Apartar pedido</Button>
           <Button variant="secondary" className="w-full">Pagar</Button>
         </div>
       </section>

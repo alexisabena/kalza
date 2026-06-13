@@ -13,10 +13,24 @@ const seed = [
   { id: 's-06', clientId: 'c-01', catalogId: 'cat-003', productId: 'p-01', date: '2026-05-28', status: 'pagado' },
 ]
 
+// A share only moves forward through its lifecycle, never back
+const RANK = { enviado: 0, abierto: 1, carrito: 2, pedido: 3, pagado: 4, entregado: 5 }
+
 export const useSharesStore = create(
   persist(
     (set) => ({
       shares: seed,
+
+      advance: (clientId, catalogId, status) =>
+        set((state) => ({
+          shares: state.shares.map((s) =>
+            s.clientId === clientId &&
+            s.catalogId === catalogId &&
+            RANK[status] > RANK[s.status]
+              ? { ...s, status }
+              : s
+          ),
+        })),
       add: ({ clientId, catalogId, productId = null }) =>
         set((state) => ({
           shares: [

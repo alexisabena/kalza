@@ -11,6 +11,7 @@ export const useSessionStore = create(
     (set) => ({
       role: 'buyer',
       name: 'Rosa', // the vendedora's name (retailer profile)
+      buyerClientId: 'c-01', // demo: the buyer profile is María (clientsStore)
       setRole: (role) => set({ role }),
     }),
     { name: 'kalza-session' }

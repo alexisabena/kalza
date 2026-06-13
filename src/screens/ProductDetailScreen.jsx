@@ -4,6 +4,7 @@ import { Check, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/stores/cartStore'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useSharesStore } from '@/stores/sharesStore'
 import { getProduct } from '@/data/products'
 import { colors } from '@/data/colors'
 import { sizeRuns } from '@/data/sizes'
@@ -97,6 +98,10 @@ export function ProductDetailScreen() {
 
   const handleAdd = () => {
     addToCart(product.id, colorId, size)
+    // The vendedora sees her share move to "en carrito"
+    useSharesStore
+      .getState()
+      .advance(useSessionStore.getState().buyerClientId, product.catalogId, 'carrito')
     setAdded(true)
     clearTimeout(addedTimer.current)
     addedTimer.current = setTimeout(() => setAdded(false), 1500)
