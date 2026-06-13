@@ -7,12 +7,13 @@ const statuses = {
   'enviado': { label: 'Enviado', cls: 'bg-muted text-muted-foreground' },
   'abierto': { label: 'Abierto', cls: 'border bg-background text-foreground' },
   'carrito': { label: 'En carrito', cls: 'bg-primary/10 text-primary' },
-  'pedido': { label: 'Pedido', cls: 'bg-primary text-primary-foreground' },
+  // orders: pedido → apartado → pagado → recolectado → entregado (vencido = lost)
+  'pedido': { label: 'Por confirmar', cls: 'bg-destructive/10 text-destructive' },
+  'apartado': { label: 'Apartado', cls: 'bg-primary/10 text-primary' },
   'pagado': { label: 'Pagado', cls: 'bg-success/15 text-success' },
+  'recolectado': { label: 'Recolectado', cls: 'bg-success/15 text-success' },
   'entregado': { label: 'Entregado', cls: 'bg-success text-success-foreground' },
-  // orders
-  'por-confirmar': { label: 'Por confirmar', cls: 'bg-destructive/10 text-destructive' },
-  'confirmado': { label: 'Confirmado', cls: 'bg-primary/10 text-primary' },
+  'vencido': { label: 'Vencido', cls: 'bg-muted text-muted-foreground line-through' },
 }
 
 export function StatusChip({ status }) {

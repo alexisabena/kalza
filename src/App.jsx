@@ -12,10 +12,13 @@ import { ClientesScreen } from '@/screens/ClientesScreen'
 import { PedidosScreen } from '@/screens/PedidosScreen'
 import { IngresosScreen } from '@/screens/IngresosScreen'
 
-// The buyer's home is the catalog; the retailer's home is her dashboard.
+// Home by profile: buyer = catalog, retailer = dashboard of shares,
+// wholesaler = incoming orders (his job here is confirming and setting apart).
 function Home() {
   const role = useSessionStore((s) => s.role)
-  return role === 'retailer' ? <DashboardScreen /> : <CatalogoScreen />
+  if (role === 'retailer') return <DashboardScreen />
+  if (role === 'wholesaler') return <PedidosScreen />
+  return <CatalogoScreen />
 }
 
 function App() {

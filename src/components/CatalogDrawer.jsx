@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 const roles = [
   { id: 'buyer', label: 'Compradora' },
   { id: 'retailer', label: 'Vendedora' },
+  { id: 'wholesaler', label: 'Mayorista' },
 ]
 
 // Catalog selector inside the hamburger drawer — the DSM showcase moment.

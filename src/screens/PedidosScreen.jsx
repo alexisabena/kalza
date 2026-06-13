@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { MessageCircle } from 'lucide-react'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
-import { useOrdersStore } from '@/stores/ordersStore'
+import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
 import { getProduct } from '@/data/products'
 import { StatusChip } from '@/components/StatusChip'
 
@@ -12,7 +12,7 @@ const formatDate = (iso) =>
 const orderTotal = (order) =>
   order.items.reduce((sum, i) => sum + (getProduct(i.productId)?.price ?? 0) * i.qty, 0)
 
-function OrderRow({ order, title }) {
+function OrderRow({ order, title, showMessages }) {
   const pieces = order.items.reduce((n, i) => n + i.qty, 0)
   return (
     <li>
@@ -30,7 +30,7 @@ function OrderRow({ order, title }) {
             · {formatDate(order.date)}
           </p>
         </div>
-        {order.messages.length > 0 && (
+        {showMessages && order.messages.length > 0 && (
           <span
             className="flex items-center gap-1 text-sm text-muted-foreground"
             aria-label={`${order.messages.length} mensajes`}
@@ -39,20 +39,21 @@ function OrderRow({ order, title }) {
             {order.messages.length}
           </span>
         )}
-        <StatusChip status={order.status} />
+        <StatusChip status={effectiveStatus(order)} />
       </Link>
     </li>
   )
 }
 
-// Active orders — the conversation with the other side lives inside each one.
+// Active orders. A buyer's order lands in the seller's AND the wholesaler's
+// list — they coordinate inventory and pickup in the order's thread.
 export function PedidosScreen() {
   const { role, buyerClientId } = useSessionStore()
   const orders = useOrdersStore((s) => s.orders)
   const clients = useClientsStore((s) => s.clients)
   const clientName = (id) => clients.find((c) => c.id === id)?.name ?? 'Clienta'
 
-  const isBuyer = role !== 'retailer'
+  const isBuyer = role === 'buyer'
   const visible = isBuyer ? orders.filter((o) => o.clientId === buyerClientId) : orders
 
   return (
@@ -69,7 +70,9 @@ export function PedidosScreen() {
           {visible.map((order) => {
             const pieces = order.items.map((i) => getProduct(i.productId)?.name).filter(Boolean)
             const title = isBuyer ? pieces[0] ?? 'Pedido' : clientName(order.clientId)
-            return <OrderRow key={order.id} order={order} title={title} />
+            return (
+              <OrderRow key={order.id} order={order} title={title} showMessages={!isBuyer} />
+            )
           })}
         </ul>
       )}

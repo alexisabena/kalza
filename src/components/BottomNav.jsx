@@ -8,7 +8,8 @@ import { useSessionStore } from '@/stores/sessionStore'
 // retailer's home is her dashboard of shared catalogs.
 const tabs = [
   { to: '/', label: 'Catálogo', icon: BookOpen, roles: ['buyer'] },
-  { to: '/', label: 'Inicio', icon: House, roles: ['retailer', 'wholesaler'] },
+  { to: '/', label: 'Inicio', icon: House, roles: ['retailer'] },
+  { to: '/', label: 'Pedidos', icon: Package, roles: ['wholesaler'] },
   { to: '/catalogo', label: 'Catálogo', icon: BookOpen, roles: ['retailer'] },
   { to: '/pedidos', label: 'Pedidos', icon: Package, roles: ['buyer', 'retailer'] },
   { to: '/ingresos', label: 'Ingresos', icon: TrendingUp, roles: ['retailer', 'wholesaler'] },

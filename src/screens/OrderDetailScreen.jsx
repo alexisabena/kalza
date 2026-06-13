@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Send, Check } from 'lucide-react'
+import { Send, Check, PackageCheck, HandCoins, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
-import { useOrdersStore } from '@/stores/ordersStore'
+import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
 import { getProduct } from '@/data/products'
 import { colors } from '@/data/colors'
 import { ProductImage } from '@/components/ProductImage'
@@ -16,11 +16,75 @@ const mxn = (n) => `$${n.toLocaleString('es-MX')}`
 const formatDate = (iso) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })
 
+const formatDeadline = (iso) =>
+  new Date(iso).toLocaleDateString('es-MX', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+// Buyer-facing progress indicator — no chat, just where her pedido stands.
+const steps = [
+  { id: 'pedido', label: 'Pedido realizado' },
+  { id: 'apartado', label: 'Apartado para ti' },
+  { id: 'pagado', label: 'Pagado' },
+  { id: 'recolectado', label: 'Recolectado por tu vendedora' },
+  { id: 'entregado', label: 'Entregado' },
+]
+
+function ProgressStepper({ status }) {
+  if (status === 'vencido') {
+    return (
+      <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
+        El plazo de pago venció y el apartado se liberó. Puedes volver a pedirlo
+        desde el catálogo.
+      </p>
+    )
+  }
+  const reached = steps.findIndex((s) => s.id === status)
+  return (
+    <ol className="flex flex-col gap-0" aria-label="Progreso del pedido">
+      {steps.map((step, i) => {
+        const done = i <= reached
+        return (
+          <li key={step.id} className="flex items-start gap-3">
+            <div className="flex flex-col items-center">
+              <span
+                className={cn(
+                  'flex size-6 items-center justify-center rounded-full border-2 text-xs',
+                  done
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-background text-muted-foreground'
+                )}
+              >
+                {done ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
+              </span>
+              {i < steps.length - 1 && (
+                <span className={cn('h-5 w-0.5', i < reached ? 'bg-primary' : 'bg-border')} />
+              )}
+            </div>
+            <span
+              className={cn(
+                'pt-0.5 text-sm',
+                done ? 'font-medium text-foreground' : 'text-muted-foreground'
+              )}
+            >
+              {step.label}
+            </span>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
 export function OrderDetailScreen() {
   const { id } = useParams()
   const { role } = useSessionStore()
   const clients = useClientsStore((s) => s.clients)
-  const { orders, confirm, addMessage } = useOrdersStore()
+  const { orders, reserve, pay, collect, deliver, addMessage } = useOrdersStore()
   const order = orders.find((o) => o.id === id)
   const [draft, setDraft] = useState('')
 
@@ -32,8 +96,9 @@ export function OrderDetailScreen() {
     )
   }
 
-  const isRetailer = role === 'retailer'
-  const me = isRetailer ? 'vendedora' : 'clienta'
+  const status = effectiveStatus(order)
+  const isBuyer = role === 'buyer'
+  const me = role === 'wholesaler' ? 'mayorista' : 'vendedora'
   const client = clients.find((c) => c.id === order.clientId)
   const total = order.items.reduce(
     (sum, i) => sum + (getProduct(i.productId)?.price ?? 0) * i.qty,
@@ -48,28 +113,57 @@ export function OrderDetailScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-5 p-4 pb-28">
+    <div className={cn('flex flex-col gap-5 p-4', isBuyer ? 'pb-10' : 'pb-28')}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold">
-            {isRetailer ? client?.name ?? 'Clienta' : 'Mi pedido'}
+            {isBuyer ? 'Mi pedido' : client?.name ?? 'Clienta'}
           </h1>
           <p className="text-sm text-muted-foreground">{formatDate(order.date)}</p>
         </div>
-        <StatusChip status={order.status} />
+        <StatusChip status={status} />
       </div>
 
-      {/* Step 2 of the double confirmation — the vendedora makes it real */}
-      {isRetailer && order.status === 'por-confirmar' && (
-        <Button className="w-full" onClick={() => confirm(order.id)}>
-          <Check aria-hidden="true" /> Confirmar pedido
+      {/* ── Role actions ──────────────────────────────────────────── */}
+
+      {/* Wholesaler confirms availability and sets the stock apart */}
+      {role === 'wholesaler' && status === 'pedido' && (
+        <Button className="w-full" onClick={() => reserve(order.id)}>
+          <PackageCheck aria-hidden="true" /> Confirmar y apartar
         </Button>
       )}
-      {!isRetailer && order.status === 'por-confirmar' && (
+
+      {/* Seller waits on the wholesaler, then moves the order physically */}
+      {role === 'retailer' && status === 'pedido' && (
         <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
-          Tu pedido fue enviado a tu vendedora. Ella lo confirmará pronto. 🧡
+          Esperando confirmación del mayorista.
         </p>
       )}
+      {role === 'retailer' && status === 'pagado' && (
+        <Button className="w-full" onClick={() => collect(order.id)}>
+          <Truck aria-hidden="true" /> Marcar como recolectado
+        </Button>
+      )}
+      {role === 'retailer' && status === 'recolectado' && (
+        <Button className="w-full" onClick={() => deliver(order.id)}>
+          <Check aria-hidden="true" /> Marcar como entregado
+        </Button>
+      )}
+
+      {/* Buyer: payment commitment within the window — or the order is lost */}
+      {isBuyer && status === 'apartado' && (
+        <div className="flex flex-col gap-2 rounded-xl border border-primary bg-primary/5 p-3">
+          <p className="text-sm">
+            Tu pedido está apartado. Confirma tu pago antes del{' '}
+            <strong>{formatDeadline(order.payDeadline)}</strong> o el apartado se libera.
+          </p>
+          <Button className="w-full" onClick={() => pay(order.id)}>
+            <HandCoins aria-hidden="true" /> Pagar {mxn(total)}
+          </Button>
+        </div>
+      )}
+
+      {isBuyer && <ProgressStepper status={status} />}
 
       <section aria-label="Artículos">
         <ul className="divide-y">
@@ -77,7 +171,10 @@ export function OrderDetailScreen() {
             const product = getProduct(item.productId)
             if (!product) return null
             return (
-              <li key={`${item.productId}|${item.colorId}|${item.size}`} className="flex items-center gap-3 py-3">
+              <li
+                key={`${item.productId}|${item.colorId}|${item.size}`}
+                className="flex items-center gap-3 py-3"
+              >
                 <ProductImage
                   src={product.images[0]}
                   alt={product.name}
@@ -101,50 +198,56 @@ export function OrderDetailScreen() {
         </div>
       </section>
 
-      <section aria-label="Conversación">
-        <h2 className="mb-2 font-semibold">Conversación</h2>
-        {order.messages.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Sin mensajes todavía — escribe para comentar el pedido.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {order.messages.map((m, i) => (
-              <li
-                key={i}
-                className={cn(
-                  'max-w-[80%] rounded-xl p-3 text-sm',
-                  m.from === me
-                    ? 'self-end rounded-br-sm bg-primary/10'
-                    : 'self-start rounded-bl-sm bg-muted'
-                )}
-              >
-                <p>{m.text}</p>
-                <p className="mt-1 text-right text-xs text-muted-foreground">{m.time}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* Coordination thread — seller ↔ wholesaler only, never the buyer */}
+      {!isBuyer && (
+        <>
+          <section aria-label="Coordinación">
+            <h2 className="mb-2 font-semibold">
+              Coordinación con {me === 'vendedora' ? 'el mayorista' : 'la vendedora'}
+            </h2>
+            {order.messages.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Sin mensajes todavía — acuerden inventario y recolección aquí.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {order.messages.map((m, i) => (
+                  <li
+                    key={i}
+                    className={cn(
+                      'max-w-[80%] rounded-xl p-3 text-sm',
+                      m.from === me
+                        ? 'self-end rounded-br-sm bg-primary/10'
+                        : 'self-start rounded-bl-sm bg-muted'
+                    )}
+                  >
+                    <p>{m.text}</p>
+                    <p className="mt-1 text-right text-xs text-muted-foreground">{m.time}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-      {/* Composer — owns the bottom edge (immersive view, no bottom nav) */}
-      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-md gap-2 border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <label className="sr-only" htmlFor="order-message">
-          Mensaje
-        </label>
-        <input
-          id="order-message"
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && send()}
-          placeholder="Escribe un mensaje…"
-          className="h-12 min-w-0 flex-1 rounded-md border bg-background px-3 text-base"
-        />
-        <Button size="icon" onClick={send} disabled={!draft.trim()} aria-label="Enviar mensaje">
-          <Send aria-hidden="true" />
-        </Button>
-      </div>
+          <div className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-md gap-2 border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <label className="sr-only" htmlFor="order-message">
+              Mensaje
+            </label>
+            <input
+              id="order-message"
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && send()}
+              placeholder="Escribe un mensaje…"
+              className="h-12 min-w-0 flex-1 rounded-md border bg-background px-3 text-base"
+            />
+            <Button size="icon" onClick={send} disabled={!draft.trim()} aria-label="Enviar mensaje">
+              <Send aria-hidden="true" />
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
