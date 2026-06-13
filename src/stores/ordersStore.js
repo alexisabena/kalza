@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useSharesStore } from '@/stores/sharesStore'
+import { seedApprovers } from '@/data/staff'
 
 // Order lifecycle (decision 2026-06-13 — formalized payment):
 //   pedido      buyer placed the order; wholesaler confirmation pending
@@ -17,12 +18,56 @@ import { useSharesStore } from '@/stores/sharesStore'
 //
 // The conversation thread is seller ↔ wholesaler coordination (pickup,
 // inventory, buyer relationship) — buyers never see it.
+//
+// statusHistory (v4) records every transition as { status, at, approver } for
+// the back-office audit trail. `approver` is the staff admin who made a
+// staff-driven change (apartar, hand-off); buyer/seller steps have approver
+// null. See wholesaler-admin-spec.md › Staff, tiers & audit trail.
 
 const PAY_WINDOW_HOURS = 48
 
 const hoursFromNow = (h) => new Date(Date.now() + h * 3600_000).toISOString()
 
-const seed = [
+const hash = (s) => {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return h
+}
+
+// Seed orders carry only their current status + date; the chronological
+// history is derived so timestamps and approvers stay consistent.
+const STEP_ORDER = ['pedido', 'apartado', 'pagado', 'recolectado', 'entregado']
+
+// { dayOffset, hour, staff } per step — staff steps get an approver attributed.
+const STEP_META = {
+  pedido: { day: 0, hour: 10, staff: false },
+  apartado: { day: 0, hour: 14, staff: true },
+  pagado: { day: 1, hour: 11, staff: false },
+  recolectado: { day: 2, hour: 16, staff: true },
+  entregado: { day: 3, hour: 13, staff: false },
+}
+
+const stepTime = (date, day, hour) => {
+  const d = new Date(`${date}T00:00:00`)
+  d.setDate(d.getDate() + day)
+  d.setHours(hour, 0, 0, 0)
+  return d.toISOString()
+}
+
+const buildHistory = (order) => {
+  const reached = STEP_ORDER.indexOf(order.status)
+  const approver = seedApprovers[hash(order.id) % seedApprovers.length]
+  return STEP_ORDER.slice(0, reached + 1).map((status) => {
+    const meta = STEP_META[status]
+    return {
+      status,
+      at: stepTime(order.date, meta.day, meta.hour),
+      approver: meta.staff ? approver : null,
+    }
+  })
+}
+
+const rawSeed = [
   {
     id: 'o-01',
     clientId: 'c-01',
@@ -120,6 +165,8 @@ const seed = [
   },
 ]
 
+const seed = rawSeed.map((o) => ({ ...o, statusHistory: buildHistory(o) }))
+
 // An apartado order past its payment window is lost
 export const effectiveStatus = (order) =>
   order.status === 'apartado' && order.payDeadline && Date.now() > Date.parse(order.payDeadline)
@@ -129,10 +176,21 @@ export const effectiveStatus = (order) =>
 const now = () =>
   new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
 
-const setStatus = (set) => (orderId, from, to, extra = {}) =>
+// Append a status transition (with audit entry) when the order is in `from`.
+const setStatus = (set) => (orderId, from, to, { approver = null, ...extra } = {}) =>
   set((state) => ({
     orders: state.orders.map((o) =>
-      o.id === orderId && effectiveStatus(o) === from ? { ...o, status: to, ...extra } : o
+      o.id === orderId && effectiveStatus(o) === from
+        ? {
+            ...o,
+            status: to,
+            ...extra,
+            statusHistory: [
+              ...(o.statusHistory ?? []),
+              { status: to, at: new Date().toISOString(), approver },
+            ],
+          }
+        : o
     ),
   }))
 
@@ -151,6 +209,7 @@ export const useOrdersStore = create(
           payDeadline: null,
           items,
           messages: [],
+          statusHistory: [{ status: 'pedido', at: new Date().toISOString(), approver: null }],
         }
         set((state) => ({ orders: [order, ...state.orders] }))
         catalogIds.forEach((catalogId) =>
@@ -159,17 +218,20 @@ export const useOrdersStore = create(
         return order
       },
 
-      // Wholesaler confirms availability and sets stock apart — payment window opens
-      reserve: (orderId) =>
+      // Wholesaler staff confirms availability and sets stock apart — the
+      // payment window opens and the confirming admin is recorded.
+      reserve: (orderId, approver = null) =>
         setStatus(set)(orderId, 'pedido', 'apartado', {
           payDeadline: hoursFromNow(PAY_WINDOW_HOURS),
+          approver,
         }),
 
       // Buyer commits to payment within the window
       pay: (orderId) => setStatus(set)(orderId, 'apartado', 'pagado', { payDeadline: null }),
 
-      // Seller picks the order up from the wholesaler
-      collect: (orderId) => setStatus(set)(orderId, 'pagado', 'recolectado'),
+      // Seller picks the order up from the wholesaler (handed over by an admin)
+      collect: (orderId, approver = null) =>
+        setStatus(set)(orderId, 'pagado', 'recolectado', { approver }),
 
       // Seller hands the order to the buyer
       deliver: (orderId) => setStatus(set)(orderId, 'recolectado', 'entregado'),
@@ -185,7 +247,7 @@ export const useOrdersStore = create(
     }),
     {
       name: 'kalza-orders',
-      version: 3, // v2 dated history; v3 adds a second vendedora's order
+      version: 4, // v4 adds statusHistory (audit trail) + approver attribution
       migrate: () => ({ orders: seed }),
     }
   )
