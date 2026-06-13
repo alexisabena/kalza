@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
 import { useSharesStore } from '@/stores/sharesStore'
 import { catalogs } from '@/data/catalogs'
@@ -18,8 +19,11 @@ export function ShareCatalogScreen() {
   const [params] = useSearchParams()
   const product = params.get('producto') ? getProduct(params.get('producto')) : null
 
-  const { clients, add: addClient } = useClientsStore()
+  const sellerId = useSessionStore((s) => s.sellerId)
+  const { clients: allClients, add: addClient } = useClientsStore()
   const addShare = useSharesStore((s) => s.add)
+  // Her own contact book
+  const clients = allClients.filter((c) => c.sellerId === sellerId)
 
   const [contactId, setContactId] = useState(null)
   const [newName, setNewName] = useState('')
@@ -36,7 +40,9 @@ export function ShareCatalogScreen() {
   const ready = isNew ? newName.trim() && newPhone.trim() : Boolean(contactId)
 
   const handleSend = () => {
-    const clientId = isNew ? addClient(newName.trim(), newPhone.trim()).id : contactId
+    const clientId = isNew
+      ? addClient(newName.trim(), newPhone.trim(), sellerId).id
+      : contactId
     addShare({ clientId, catalogId, productId: product?.id ?? null })
     navigate('/')
   }

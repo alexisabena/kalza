@@ -4,6 +4,7 @@ import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
 import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
 import { getProduct } from '@/data/products'
+import { getSeller } from '@/data/sellers'
 import { StatusChip } from '@/components/StatusChip'
 
 const formatDate = (iso) =>
@@ -12,7 +13,7 @@ const formatDate = (iso) =>
 const orderTotal = (order) =>
   order.items.reduce((sum, i) => sum + (getProduct(i.productId)?.price ?? 0) * i.qty, 0)
 
-function OrderRow({ order, title, showMessages }) {
+function OrderRow({ order, title, subtitle, showMessages }) {
   const pieces = order.items.reduce((n, i) => n + i.qty, 0)
   return (
     <li>
@@ -22,6 +23,8 @@ function OrderRow({ order, title, showMessages }) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{title}</p>
+          {/* Wholesaler coordinates with the vendedora behind each order */}
+          {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
           <p className="text-sm text-muted-foreground">
             {pieces} {pieces === 1 ? 'artículo' : 'artículos'} ·{' '}
             <span className="font-semibold text-primary">
@@ -47,14 +50,24 @@ function OrderRow({ order, title, showMessages }) {
 
 // Active orders. A buyer's order lands in the seller's AND the wholesaler's
 // list — they coordinate inventory and pickup in the order's thread.
+// Active orders. A buyer's order lands in the seller's AND the wholesaler's
+// list — they coordinate inventory and pickup in the order's thread.
 export function PedidosScreen() {
-  const { role, buyerClientId } = useSessionStore()
+  const { role, buyerClientId, sellerId } = useSessionStore()
   const orders = useOrdersStore((s) => s.orders)
   const clients = useClientsStore((s) => s.clients)
   const clientName = (id) => clients.find((c) => c.id === id)?.name ?? 'Clienta'
+  const clientSeller = (id) => clients.find((c) => c.id === id)?.sellerId
 
   const isBuyer = role === 'buyer'
-  const visible = isBuyer ? orders.filter((o) => o.clientId === buyerClientId) : orders
+  const isWholesaler = role === 'wholesaler'
+
+  // Buyer: her own orders. Vendedora: orders from her clientas. Mayorista: all.
+  const visible = isBuyer
+    ? orders.filter((o) => o.clientId === buyerClientId)
+    : isWholesaler
+      ? orders
+      : orders.filter((o) => clientSeller(o.clientId) === sellerId)
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -70,8 +83,17 @@ export function PedidosScreen() {
           {visible.map((order) => {
             const pieces = order.items.map((i) => getProduct(i.productId)?.name).filter(Boolean)
             const title = isBuyer ? pieces[0] ?? 'Pedido' : clientName(order.clientId)
+            const subtitle = isWholesaler
+              ? `vía ${getSeller(clientSeller(order.clientId))?.name ?? 'vendedora'}`
+              : null
             return (
-              <OrderRow key={order.id} order={order} title={title} showMessages={!isBuyer} />
+              <OrderRow
+                key={order.id}
+                order={order}
+                title={title}
+                subtitle={subtitle}
+                showMessages={!isBuyer}
+              />
             )
           })}
         </ul>

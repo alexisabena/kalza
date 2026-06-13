@@ -108,6 +108,16 @@ const seed = [
     items: [{ productId: 'k-06', colorId: 'camel', size: '25', qty: 1 }],
     messages: [],
   },
+  // Marta's clienta (se-02) — gives the wholesaler a second vendedora to attribute
+  {
+    id: 'o-09',
+    clientId: 'c-05',
+    date: '2026-06-08',
+    status: 'pagado',
+    payDeadline: null,
+    items: [{ productId: 'e-02', colorId: 'negro-charol', size: '24', qty: 1 }],
+    messages: [],
+  },
 ]
 
 // An apartado order past its payment window is lost
@@ -175,7 +185,7 @@ export const useOrdersStore = create(
     }),
     {
       name: 'kalza-orders',
-      version: 2, // v0 vendedora-confirms; v2 adds dated history for Ingresos
+      version: 3, // v2 dated history; v3 adds a second vendedora's order
       migrate: () => ({ orders: seed }),
     }
   )

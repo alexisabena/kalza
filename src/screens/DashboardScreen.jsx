@@ -14,12 +14,16 @@ const formatDate = (iso) =>
 
 // Retailer home — every catalog she's shared and how far each clienta got.
 export function DashboardScreen() {
-  const name = useSessionStore((s) => s.name)
-  const shares = useSharesStore((s) => s.shares)
+  const { name, sellerId } = useSessionStore()
+  const allShares = useSharesStore((s) => s.shares)
   const clients = useClientsStore((s) => s.clients)
 
   const clientName = (id) => clients.find((c) => c.id === id)?.name ?? 'Clienta'
+  const clientSeller = (id) => clients.find((c) => c.id === id)?.sellerId
   const catalogOf = (id) => catalogs.find((c) => c.id === id)
+
+  // Only the catalogs this vendedora shared with her own clientas
+  const shares = allShares.filter((s) => clientSeller(s.clientId) === sellerId)
 
   return (
     <div className="flex flex-col gap-5 p-4">
