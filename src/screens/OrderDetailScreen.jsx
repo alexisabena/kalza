@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Send, Check, PackageCheck, HandCoins, Truck } from 'lucide-react'
+import { Send, Check, HandCoins, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
@@ -84,7 +84,7 @@ export function OrderDetailScreen() {
   const { id } = useParams()
   const { role } = useSessionStore()
   const clients = useClientsStore((s) => s.clients)
-  const { orders, reserve, pay, collect, deliver, addMessage } = useOrdersStore()
+  const { orders, pay, collect, deliver, addMessage } = useOrdersStore()
   const order = orders.find((o) => o.id === id)
   const [draft, setDraft] = useState('')
 
@@ -98,7 +98,9 @@ export function OrderDetailScreen() {
 
   const status = effectiveStatus(order)
   const isBuyer = role === 'buyer'
-  const me = role === 'wholesaler' ? 'mayorista' : 'vendedora'
+  // On mobile, the non-buyer is always the vendedora — the mayorista is on the
+  // desktop back-office. She coordinates with him in this thread.
+  const me = 'vendedora'
   const client = clients.find((c) => c.id === order.clientId)
   const total = order.items.reduce(
     (sum, i) => sum + (getProduct(i.productId)?.price ?? 0) * i.qty,
@@ -125,13 +127,6 @@ export function OrderDetailScreen() {
       </div>
 
       {/* ── Role actions ──────────────────────────────────────────── */}
-
-      {/* Wholesaler confirms availability and sets the stock apart */}
-      {role === 'wholesaler' && status === 'pedido' && (
-        <Button className="w-full" onClick={() => reserve(order.id)}>
-          <PackageCheck aria-hidden="true" /> Confirmar y apartar
-        </Button>
-      )}
 
       {/* Seller waits on the wholesaler, then moves the order physically */}
       {role === 'retailer' && status === 'pedido' && (
@@ -202,9 +197,7 @@ export function OrderDetailScreen() {
       {!isBuyer && (
         <>
           <section aria-label="Coordinación">
-            <h2 className="mb-2 font-semibold">
-              Coordinación con {me === 'vendedora' ? 'el mayorista' : 'la vendedora'}
-            </h2>
+            <h2 className="mb-2 font-semibold">Coordinación con el mayorista</h2>
             {order.messages.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Sin mensajes todavía — acuerden inventario y recolección aquí.

@@ -1,12 +1,14 @@
+import { Link } from 'react-router-dom'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useSessionStore } from '@/stores/sessionStore'
-import { X } from 'lucide-react'
+import { X, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// Buyer + vendedora are the two mobile profiles. The mayorista is not a mobile
+// role — he runs the desktop back-office, linked below.
 const roles = [
   { id: 'buyer', label: 'Compradora' },
   { id: 'retailer', label: 'Vendedora' },
-  { id: 'wholesaler', label: 'Mayorista' },
 ]
 
 // Catalog selector inside the hamburger drawer — the DSM showcase moment.
@@ -105,6 +107,16 @@ export function CatalogDrawer({ open, onClose }) {
               </button>
             ))}
           </div>
+
+          {/* The mayorista's surface is a separate desktop back-office */}
+          <Link
+            to="/admin"
+            onClick={onClose}
+            className="mt-3 flex h-10 items-center justify-center gap-2 rounded-md border text-sm font-medium text-muted-foreground hover:bg-muted"
+          >
+            <ExternalLink className="size-4" aria-hidden="true" />
+            Back-office (Mayorista)
+          </Link>
         </div>
       </aside>
     </>
