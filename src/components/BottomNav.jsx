@@ -8,8 +8,8 @@ import { useSessionStore } from '@/stores/sessionStore'
 // retailer's home is her dashboard of shared catalogs. The wholesaler is not a
 // mobile profile — his surface is the desktop back-office at /admin.
 const tabs = [
-  { to: '/', label: 'Catálogo', icon: BookOpen, roles: ['buyer'] },
-  { to: '/', label: 'Inicio', icon: House, roles: ['retailer'] },
+  { to: '/app', label: 'Catálogo', icon: BookOpen, roles: ['buyer'] },
+  { to: '/app', label: 'Inicio', icon: House, roles: ['retailer'] },
   { to: '/catalogo', label: 'Catálogo', icon: BookOpen, roles: ['retailer'] },
   { to: '/pedidos', label: 'Pedidos', icon: Package, roles: ['buyer', 'retailer'] },
   { to: '/ingresos', label: 'Ingresos', icon: TrendingUp, roles: ['retailer'] },

@@ -72,7 +72,7 @@ export function CartScreen() {
       <div className="flex flex-col items-center gap-4 px-4 py-16 text-center">
         <ShoppingBag className="size-10 text-muted-foreground/50" aria-hidden="true" />
         <p className="text-muted-foreground">Tu carrito está vacío.</p>
-        <Link to="/" className={cn(buttonVariants(), 'px-6')}>
+        <Link to="/app" className={cn(buttonVariants(), 'px-6')}>
           Ver el catálogo
         </Link>
       </div>

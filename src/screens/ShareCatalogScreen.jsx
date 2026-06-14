@@ -44,7 +44,7 @@ export function ShareCatalogScreen() {
       ? addClient(newName.trim(), newPhone.trim(), sellerId).id
       : contactId
     addShare({ clientId, catalogId, productId: product?.id ?? null })
-    navigate('/')
+    navigate('/app')
   }
 
   return (

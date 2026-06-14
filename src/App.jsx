@@ -12,6 +12,7 @@ import { ClientesScreen } from '@/screens/ClientesScreen'
 import { PedidosScreen } from '@/screens/PedidosScreen'
 import { IngresosScreen } from '@/screens/IngresosScreen'
 import { AdminApp } from '@/admin/AdminApp'
+import { CaseStudyPage } from '@/case/CaseStudyPage'
 
 // Home by profile: buyer = catalog, retailer = dashboard of shares.
 // The wholesaler is no longer a mobile profile — he has his own desktop
@@ -37,7 +38,7 @@ function MobileApp() {
       <TopBar />
       <main className={immersive ? 'pt-14' : 'pb-[60px] pt-14'}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/app" element={<Home />} />
           <Route path="/catalogo" element={<CatalogoScreen />} />
           <Route path="/producto/:id" element={<ProductDetailScreen />} />
           <Route path="/carrito" element={<CartScreen />} />
@@ -46,7 +47,7 @@ function MobileApp() {
           <Route path="/pedidos" element={<PedidosScreen />} />
           <Route path="/pedido/:id" element={<OrderDetailScreen />} />
           <Route path="/ingresos" element={<IngresosScreen />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/app" replace />} />
         </Routes>
       </main>
       {!immersive && <BottomNav />}
@@ -61,6 +62,7 @@ function App() {
   return (
     <Routes>
       <Route path="/admin/*" element={<AdminApp />} />
+      <Route path="/" element={<CaseStudyPage />} />
       <Route path="/*" element={<MobileApp />} />
     </Routes>
   )
