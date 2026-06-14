@@ -48,7 +48,9 @@ export function IncomePage() {
       const amount = inPeriod
         .filter((o) => sellerOf(o.clientId) === seller.id)
         .reduce((sum, o) => sum + o.items.reduce((s, i) => s + itemTotal(i), 0), 0)
-      return { seller, amount, ...sumSplit(amount) }
+      // Keep the split nested: spreading it would clobber the `seller` object
+      // with the split's numeric `seller` field.
+      return { seller, amount, split: sumSplit(amount) }
     })
     .filter((r) => r.amount > 0)
 
@@ -63,13 +65,17 @@ export function IncomePage() {
             .reduce((s, i) => s + itemTotal(i), 0),
         0
       )
-      return { catalog, amount, ...sumSplit(amount) }
+      return { catalog, amount, split: sumSplit(amount) }
     })
     .filter((r) => r.amount > 0)
 
   const q = query.trim().toLowerCase()
-  const sellerRows = bySeller.filter((r) => r.seller.name.toLowerCase().includes(q))
-  const catalogRows = byCatalog.filter((r) => r.catalog.brand.toLowerCase().includes(q))
+  const sellerRows = bySeller
+    .filter((r) => r.seller.name.toLowerCase().includes(q))
+    .map((r) => ({ key: r.seller.id, name: r.seller.name, ...r.split }))
+  const catalogRows = byCatalog
+    .filter((r) => r.catalog.brand.toLowerCase().includes(q))
+    .map((r) => ({ key: r.catalog.id, name: r.catalog.brand, ...r.split }))
 
   return (
     <div>
@@ -93,16 +99,8 @@ export function IncomePage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <SplitTable
-          title="Por vendedora"
-          firstCol="Vendedora"
-          rows={sellerRows.map((r) => ({ key: r.seller.id, name: r.seller.name, ...r }))}
-        />
-        <SplitTable
-          title="Por catálogo"
-          firstCol="Catálogo"
-          rows={catalogRows.map((r) => ({ key: r.catalog.id, name: r.catalog.brand, ...r }))}
-        />
+        <SplitTable title="Por vendedora" firstCol="Vendedora" rows={sellerRows} />
+        <SplitTable title="Por catálogo" firstCol="Catálogo" rows={catalogRows} />
       </div>
     </div>
   )
