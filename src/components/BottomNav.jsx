@@ -5,14 +5,14 @@ import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
 
 // Which tabs each profile sees. The buyer's home is the catalog; the
-// retailer's home is her dashboard of shared catalogs.
+// retailer's home is her dashboard of shared catalogs. The wholesaler is not a
+// mobile profile — his surface is the desktop back-office at /admin.
 const tabs = [
   { to: '/', label: 'Catálogo', icon: BookOpen, roles: ['buyer'] },
   { to: '/', label: 'Inicio', icon: House, roles: ['retailer'] },
-  { to: '/', label: 'Pedidos', icon: Package, roles: ['wholesaler'] },
   { to: '/catalogo', label: 'Catálogo', icon: BookOpen, roles: ['retailer'] },
   { to: '/pedidos', label: 'Pedidos', icon: Package, roles: ['buyer', 'retailer'] },
-  { to: '/ingresos', label: 'Ingresos', icon: TrendingUp, roles: ['retailer', 'wholesaler'] },
+  { to: '/ingresos', label: 'Ingresos', icon: TrendingUp, roles: ['retailer'] },
 ]
 
 // Hide when scrolling down, reappear on scroll up — images take priority.

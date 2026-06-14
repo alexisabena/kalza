@@ -11,17 +11,19 @@ import { OrderDetailScreen } from '@/screens/OrderDetailScreen'
 import { ClientesScreen } from '@/screens/ClientesScreen'
 import { PedidosScreen } from '@/screens/PedidosScreen'
 import { IngresosScreen } from '@/screens/IngresosScreen'
+import { AdminApp } from '@/admin/AdminApp'
 
-// Home by profile: buyer = catalog, retailer = dashboard of shares,
-// wholesaler = incoming orders (his job here is confirming and setting apart).
+// Home by profile: buyer = catalog, retailer = dashboard of shares.
+// The wholesaler is no longer a mobile profile — he has his own desktop
+// back-office at /admin (see AdminApp).
 function Home() {
   const role = useSessionStore((s) => s.role)
   if (role === 'retailer') return <DashboardScreen />
-  if (role === 'wholesaler') return <PedidosScreen />
   return <CatalogoScreen />
 }
 
-function App() {
+// The mobile-first app: buyer + vendedora, in the phone frame.
+function MobileApp() {
   const { pathname } = useLocation()
   // Focused views — no bottom nav, back button instead
   const immersive =
@@ -49,6 +51,18 @@ function App() {
       </main>
       {!immersive && <BottomNav />}
     </div>
+  )
+}
+
+// Two surfaces, one repo: the desktop back-office (its own shell) and the
+// mobile app (phone frame). Split at the root so /admin never inherits the
+// max-w-md frame or the bottom nav.
+function App() {
+  return (
+    <Routes>
+      <Route path="/admin/*" element={<AdminApp />} />
+      <Route path="/*" element={<MobileApp />} />
+    </Routes>
   )
 }
 
