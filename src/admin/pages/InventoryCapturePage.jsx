@@ -16,6 +16,7 @@ import { colors } from '@/data/colors'
 import { sizeRuns } from '@/data/sizes'
 import { useInventoryStore } from '@/stores/inventoryStore'
 import { fileToDataUrl } from '@/admin/lib/image'
+import { mxn } from '@/admin/lib/format'
 import { cn } from '@/lib/utils'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -470,49 +471,28 @@ function Modal({ title, children, onClose }) {
   )
 }
 
-// Mexican-currency masked input: shows $###.###,## (dot thousands, comma
-// decimals), text right-aligned, with an MXN suffix. Stores a plain number.
-const numToRaw = (v) =>
-  v === '' || v == null || Number.isNaN(Number(v)) ? '' : String(v).replace('.', ',')
-
-const formatRaw = (raw) => {
-  const [intPart, dec] = raw.split(',')
-  const grouped = (intPart || '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  return `$${grouped || '0'}${raw.includes(',') ? `,${dec ?? ''}` : ''}`
-}
-
+// Peso input, standard es-MX format ($ + comma thousands, no decimals) to match
+// mxn() used across the back-office. Text right-aligned, MXN suffix, stores a
+// plain integer number.
 function CurrencyInput({ value, onChange }) {
-  const [raw, setRaw] = useState(() => numToRaw(value))
+  const [raw, setRaw] = useState(() =>
+    value === '' || value == null || Number.isNaN(Number(value)) ? '' : String(Math.trunc(value))
+  )
 
   const handleChange = (e) => {
-    const stripped = e.target.value.replace(/[^\d,]/g, '') // keep digits + decimal comma
-    const [intPart, ...rest] = stripped.split(',')
-    const cleanInt = intPart.replace(/^0+(?=\d)/, '')
-    let next = cleanInt
-    if (stripped.includes(',')) {
-      const dec = rest.join('').replace(/\D/g, '').slice(0, 2)
-      next = `${cleanInt === '' ? '0' : cleanInt},${dec}`
-    }
-    setRaw(next)
-    onChange(next === '' ? '' : Number(next.replace(',', '.')))
-  }
-
-  // On blur, normalize to two decimals so the field reads as $###.###,##
-  const handleBlur = () => {
-    if (raw === '') return
-    const num = Number(raw.replace(',', '.'))
-    if (!Number.isNaN(num)) setRaw(num.toFixed(2).replace('.', ','))
+    const digits = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+    setRaw(digits)
+    onChange(digits === '' ? '' : Number(digits))
   }
 
   return (
     <div className="relative">
       <input
         type="text"
-        inputMode="decimal"
-        value={raw === '' ? '' : formatRaw(raw)}
+        inputMode="numeric"
+        value={raw === '' ? '' : mxn(Number(raw))}
         onChange={handleChange}
-        onBlur={handleBlur}
-        placeholder="$0,00"
+        placeholder="$0"
         className="h-10 w-full rounded-md border bg-background pl-3 pr-14 text-right text-sm tabular-nums"
       />
       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
