@@ -1,6 +1,16 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, ImagePlus, X, Save } from 'lucide-react'
+import {
+  Plus,
+  Trash2,
+  ImagePlus,
+  X,
+  Save,
+  ChevronDown,
+  CircleCheck,
+  CircleAlert,
+  TriangleAlert,
+} from 'lucide-react'
 import { catalogs } from '@/data/catalogs'
 import { colors } from '@/data/colors'
 import { sizeRuns } from '@/data/sizes'
@@ -15,126 +25,282 @@ const COLOR_IDS = Object.keys(colors)
 const inputCls = 'h-10 w-full rounded-md border bg-background px-3 text-sm'
 const MAX_IMAGES = 4
 
-// Single-product capture: one product (name, description, catalog, corrida,
-// price), then per chosen color a stock quantity and a set of images uploaded
-// through a modal. Bulk import is intentionally out of scope (see info modal).
+let draftSeq = 0
+const makeDraft = () => ({
+  _id: `d-${++draftSeq}`,
+  name: '',
+  description: '',
+  catalogId: catalogs[0].id,
+  sizeRun: SIZE_RUNS[0],
+  price: '',
+  colors: [], // [{ colorId, stock, images: [] }]
+})
+
+// Completeness of one product draft.
+// Error: missing title / description / price / colors, or a color without stock.
+// Warning: a color has no images yet. OK: everything filled + every color imaged.
+function productStatus(p) {
+  const errors = []
+  if (!p.name.trim()) errors.push('título')
+  if (!p.description.trim()) errors.push('descripción')
+  if (Number(p.price) <= 0) errors.push('precio')
+  if (p.colors.length === 0) errors.push('colores')
+  else if (p.colors.some((c) => String(c.stock).trim() === '' || Number(c.stock) < 0))
+    errors.push('stock')
+
+  const warnings = []
+  if (p.colors.length > 0 && p.colors.some((c) => c.images.length === 0)) warnings.push('imágenes')
+
+  return { errors, warnings, level: errors.length ? 'error' : warnings.length ? 'warning' : 'ok' }
+}
+
+// Single-product capture, stacked as accordions so several items can be
+// captured in one pass. The relationship is producto → color → stock + imágenes.
 export function InventoryCapturePage() {
   const addProducts = useInventoryStore((s) => s.addProducts)
   const navigate = useNavigate()
 
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [catalogId, setCatalogId] = useState(catalogs[0].id)
-  const [sizeRun, setSizeRun] = useState(SIZE_RUNS[0])
-  const [price, setPrice] = useState('')
-  const [rows, setRows] = useState([]) // [{ colorId, stock, images: [] }]
-
-  const [imageModal, setImageModal] = useState(null) // row index or null
+  const [products, setProducts] = useState(() => [makeDraft()])
+  const [openIds, setOpenIds] = useState(() => new Set([products[0]._id]))
+  const [imageModal, setImageModal] = useState(null) // { pid, ci }
   const [infoOpen, setInfoOpen] = useState(false)
 
-  const used = new Set(rows.map((r) => r.colorId))
-  const nextColor = COLOR_IDS.find((id) => !used.has(id))
+  const patchProduct = (pid, patch) =>
+    setProducts((ps) => ps.map((p) => (p._id === pid ? { ...p, ...patch } : p)))
 
-  // Compute the next unused color from current state so rapid adds never dupe.
-  const addColor = () =>
-    setRows((rs) => {
-      const taken = new Set(rs.map((r) => r.colorId))
-      const next = COLOR_IDS.find((id) => !taken.has(id))
-      return next ? [...rs, { colorId: next, stock: '', images: [] }] : rs
+  const addProduct = () => {
+    const draft = makeDraft()
+    setProducts((ps) => [...ps, draft])
+    setOpenIds((s) => new Set(s).add(draft._id))
+  }
+  const removeProduct = (pid) => {
+    setProducts((ps) => ps.filter((p) => p._id !== pid))
+    setOpenIds((s) => {
+      const next = new Set(s)
+      next.delete(pid)
+      return next
     })
-  const updateRow = (i, patch) =>
-    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)))
-  const removeRow = (i) => setRows((rs) => rs.filter((_, idx) => idx !== i))
+  }
+  const toggleOpen = (pid) =>
+    setOpenIds((s) => {
+      const next = new Set(s)
+      next.has(pid) ? next.delete(pid) : next.add(pid)
+      return next
+    })
 
-  const ready =
-    name.trim() && Number(price) > 0 && rows.length > 0 && rows.every((r) => r.colorId)
+  // Per-color helpers operate on a given product.
+  const addColor = (pid) =>
+    patchColors(pid, (cs) => {
+      const taken = new Set(cs.map((c) => c.colorId))
+      const next = COLOR_IDS.find((id) => !taken.has(id))
+      return next ? [...cs, { colorId: next, stock: '', images: [] }] : cs
+    })
+  const updateColor = (pid, ci, patch) =>
+    patchColors(pid, (cs) => cs.map((c, i) => (i === ci ? { ...c, ...patch } : c)))
+  const removeColor = (pid, ci) => patchColors(pid, (cs) => cs.filter((_, i) => i !== ci))
+  const patchColors = (pid, fn) =>
+    setProducts((ps) => ps.map((p) => (p._id === pid ? { ...p, colors: fn(p.colors) } : p)))
+
+  const statuses = products.map(productStatus)
+  const canSave = products.length > 0 && statuses.every((s) => s.level !== 'error')
 
   const save = () => {
-    if (!ready) return
-    addProducts([{ name, description, catalogId, price, sizeRun, colors: rows }])
+    if (!canSave) return
+    addProducts(
+      products.map((p) => ({
+        name: p.name,
+        description: p.description,
+        catalogId: p.catalogId,
+        price: p.price,
+        sizeRun: p.sizeRun,
+        colors: p.colors,
+      }))
+    )
     navigate('/admin/inventory')
   }
+
+  const modalColor =
+    imageModal && products.find((p) => p._id === imageModal.pid)?.colors[imageModal.ci]
 
   return (
     <div>
       <PageHeader
-        crumbs={[{ label: 'Inventario', to: '/admin/inventory' }, { label: 'Nuevo artículo' }]}
-        title="Nuevo artículo"
+        crumbs={[{ label: 'Inventario', to: '/admin/inventory' }, { label: 'Nuevos artículos' }]}
+        title="Nuevos artículos"
       >
         <Button variant="outline" onClick={() => setInfoOpen(true)}>
           ¿Cómo funciona?
         </Button>
-        <Button onClick={save} disabled={!ready}>
-          <Save aria-hidden="true" /> Guardar
+        <Button onClick={save} disabled={!canSave}>
+          <Save aria-hidden="true" /> Guardar {products.length > 1 && `(${products.length})`}
         </Button>
       </PageHeader>
 
-      <div className="grid max-w-4xl gap-6">
-        {/* Producto */}
-        <section className="rounded-xl border p-5">
-          <h2 className="mb-4 font-semibold">Producto</h2>
+      <div className="flex max-w-4xl flex-col gap-3">
+        {products.map((product, i) => (
+          <ProductAccordion
+            key={product._id}
+            product={product}
+            index={i + 1}
+            status={statuses[i]}
+            open={openIds.has(product._id)}
+            canRemove={products.length > 1}
+            onToggle={() => toggleOpen(product._id)}
+            onPatch={(patch) => patchProduct(product._id, patch)}
+            onRemove={() => removeProduct(product._id)}
+            onAddColor={() => addColor(product._id)}
+            onUpdateColor={(ci, patch) => updateColor(product._id, ci, patch)}
+            onRemoveColor={(ci) => removeColor(product._id, ci)}
+            onOpenImages={(ci) => setImageModal({ pid: product._id, ci })}
+          />
+        ))}
+
+        <Button variant="outline" onClick={addProduct} className="self-start">
+          <Plus aria-hidden="true" /> Agregar producto
+        </Button>
+      </div>
+
+      {modalColor && (
+        <ImageModal
+          row={modalColor}
+          onClose={() => setImageModal(null)}
+          onChange={(images) => updateColor(imageModal.pid, imageModal.ci, { images })}
+        />
+      )}
+      {infoOpen && <InfoModal onClose={() => setInfoOpen(false)} />}
+    </div>
+  )
+}
+
+const STATUS = {
+  ok: { icon: CircleCheck, cls: 'bg-success/15 text-success' },
+  warning: { icon: TriangleAlert, cls: 'bg-primary/10 text-primary' },
+  error: { icon: CircleAlert, cls: 'bg-destructive/10 text-destructive' },
+}
+
+function StatusBadge({ status }) {
+  const { icon: Icon, cls } = STATUS[status.level]
+  const label =
+    status.level === 'error'
+      ? `Falta: ${status.errors.join(', ')}`
+      : status.level === 'warning'
+        ? 'Imágenes pendientes'
+        : 'Listo'
+  return (
+    <span className={cn('flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium', cls)}>
+      <Icon className="size-3.5" aria-hidden="true" />
+      {label}
+    </span>
+  )
+}
+
+function ProductAccordion({
+  product,
+  index,
+  status,
+  open,
+  canRemove,
+  onToggle,
+  onPatch,
+  onRemove,
+  onAddColor,
+  onUpdateColor,
+  onRemoveColor,
+  onOpenImages,
+}) {
+  const taken = new Set(product.colors.map((c) => c.colorId))
+  const nextColor = COLOR_IDS.find((id) => !taken.has(id))
+
+  return (
+    <section className={cn('overflow-hidden rounded-xl border', open && 'border-primary/40')}>
+      <div className="flex items-center gap-3 px-4 py-3">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={open}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+        >
+          <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} aria-hidden="true" />
+          <span className="min-w-0">
+            <span className="block truncate font-medium">
+              {product.name.trim() || `Producto ${index}`}
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              {catalogs.find((c) => c.id === product.catalogId)?.brand}
+              {product.colors.length > 0 && ` · ${product.colors.length} ${product.colors.length === 1 ? 'color' : 'colores'}`}
+            </span>
+          </span>
+        </button>
+        <StatusBadge status={status} />
+        {canRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label="Quitar producto"
+            className="flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-destructive"
+          >
+            <Trash2 className="size-4" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+
+      {open && (
+        <div className="border-t p-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nombre" className="sm:col-span-2">
-              <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del artículo" />
+              <input className={inputCls} value={product.name} onChange={(e) => onPatch({ name: e.target.value })} placeholder="Nombre del artículo" />
             </Field>
             <Field label="Descripción" className="sm:col-span-2">
               <textarea
                 className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={product.description}
+                onChange={(e) => onPatch({ description: e.target.value })}
                 placeholder="Descripción del producto"
               />
             </Field>
             <Field label="Catálogo">
-              <select className={inputCls} value={catalogId} onChange={(e) => setCatalogId(e.target.value)}>
+              <select className={inputCls} value={product.catalogId} onChange={(e) => onPatch({ catalogId: e.target.value })}>
                 {catalogs.map((c) => (
                   <option key={c.id} value={c.id}>{c.brand}</option>
                 ))}
               </select>
             </Field>
             <Field label="Corrida">
-              <select className={inputCls} value={sizeRun} onChange={(e) => setSizeRun(e.target.value)}>
+              <select className={inputCls} value={product.sizeRun} onChange={(e) => onPatch({ sizeRun: e.target.value })}>
                 {SIZE_RUNS.map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>
             </Field>
             <Field label="Precio">
-              <input type="number" min="0" className={inputCls} value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" />
+              <input type="number" min="0" className={inputCls} value={product.price} onChange={(e) => onPatch({ price: e.target.value })} placeholder="0" />
             </Field>
           </div>
-        </section>
 
-        {/* Colores: stock + imágenes por color */}
-        <section className="rounded-xl border p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold">Colores</h2>
-            <Button variant="outline" size="sm" onClick={addColor} disabled={!nextColor}>
+          <div className="mt-6 mb-3 flex items-center justify-between">
+            <h3 className="font-semibold">Colores</h3>
+            <Button variant="outline" size="sm" onClick={onAddColor} disabled={!nextColor}>
               <Plus aria-hidden="true" /> Agregar color
             </Button>
           </div>
 
-          {rows.length === 0 ? (
+          {product.colors.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Agrega los colores de este artículo. Por cada color defines su stock y sus imágenes.
+              Agrega los colores. Por cada color defines su stock y sus imágenes.
             </p>
           ) : (
             <ul className="flex flex-col divide-y">
-              {rows.map((row, i) => (
-                <li key={i} className="flex flex-wrap items-center gap-3 py-3">
-                  <span
-                    className="size-5 shrink-0 rounded-full border"
-                    style={{ backgroundColor: colors[row.colorId]?.hex }}
-                    aria-hidden="true"
-                  />
+              {product.colors.map((row, ci) => (
+                <li key={ci} className="flex flex-wrap items-center gap-3 py-3">
+                  <span className="size-5 shrink-0 rounded-full border" style={{ backgroundColor: colors[row.colorId]?.hex }} aria-hidden="true" />
                   <select
                     className="h-10 w-40 rounded-md border bg-background px-2 text-sm"
                     value={row.colorId}
-                    onChange={(e) => updateRow(i, { colorId: e.target.value })}
+                    onChange={(e) => onUpdateColor(ci, { colorId: e.target.value })}
                     aria-label="Color"
                   >
                     {COLOR_IDS.map((id) => (
-                      <option key={id} value={id} disabled={used.has(id) && id !== row.colorId}>
+                      <option key={id} value={id} disabled={taken.has(id) && id !== row.colorId}>
                         {colors[id].name}
                       </option>
                     ))}
@@ -147,32 +313,31 @@ export function InventoryCapturePage() {
                       min="0"
                       className="h-10 w-24 rounded-md border bg-background px-2 text-sm"
                       value={row.stock}
-                      onChange={(e) => updateRow(i, { stock: e.target.value })}
+                      onChange={(e) => onUpdateColor(ci, { stock: e.target.value })}
                       placeholder="0"
                       aria-label={`Stock de ${colors[row.colorId]?.name}`}
                     />
                   </label>
 
-                  {/* uploaded thumbnails for this color */}
                   <div className="flex items-center gap-1">
                     {row.images.map((src, ii) => (
-                      <img
-                        key={ii}
-                        src={src}
-                        alt=""
-                        className="size-9 rounded border object-cover"
-                      />
+                      <img key={ii} src={src} alt="" className="size-9 rounded border object-cover" />
                     ))}
                   </div>
 
-                  <Button variant="outline" size="sm" onClick={() => setImageModal(i)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onOpenImages(ci)}
+                    className={cn(row.images.length === 0 && 'border-primary/50 text-primary')}
+                  >
                     <ImagePlus aria-hidden="true" />
                     {row.images.length > 0 ? `Imágenes (${row.images.length})` : 'Imágenes'}
                   </Button>
 
                   <button
                     type="button"
-                    onClick={() => removeRow(i)}
+                    onClick={() => onRemoveColor(ci)}
                     aria-label="Quitar color"
                     className="ml-auto flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-destructive"
                   >
@@ -182,18 +347,9 @@ export function InventoryCapturePage() {
               ))}
             </ul>
           )}
-        </section>
-      </div>
-
-      {imageModal !== null && (
-        <ImageModal
-          row={rows[imageModal]}
-          onClose={() => setImageModal(null)}
-          onChange={(images) => updateRow(imageModal, { images })}
-        />
+        </div>
       )}
-      {infoOpen && <InfoModal onClose={() => setInfoOpen(false)} />}
-    </div>
+    </section>
   )
 }
 
@@ -256,14 +412,7 @@ function ImageModal({ row, onClose, onChange }) {
         )}
       </div>
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={onFiles}
-        className="hidden"
-      />
+      <input ref={fileRef} type="file" accept="image/*" multiple onChange={onFiles} className="hidden" />
 
       <div className="flex justify-end">
         <Button onClick={onClose}>Listo</Button>
@@ -274,17 +423,18 @@ function ImageModal({ row, onClose, onChange }) {
 
 function InfoModal({ onClose }) {
   return (
-    <Modal onClose={onClose} title="Cómo capturar un artículo">
+    <Modal onClose={onClose} title="Cómo capturar artículos">
       <ol className="mb-5 flex list-decimal flex-col gap-2 pl-5 text-sm text-muted-foreground">
         <li>Captura el <strong className="text-foreground">producto</strong>: nombre, descripción, catálogo, corrida y precio.</li>
         <li>Agrega los <strong className="text-foreground">colores</strong> en que se vende.</li>
         <li>Por cada color, define su <strong className="text-foreground">stock</strong> y sube sus <strong className="text-foreground">imágenes</strong>.</li>
-        <li>Guarda. El artículo queda ligado a su catálogo y aparece en el inventario.</li>
+        <li>Agrega más productos con “Agregar producto”. La etiqueta de cada uno indica si está listo, si le falta un dato o si tiene imágenes pendientes.</li>
+        <li>Guarda. Solo se guardan los productos sin errores.</li>
       </ol>
       <p className="mb-5 text-sm text-muted-foreground">
         La relación es <strong className="text-foreground">producto → color → stock e imágenes</strong>.
         La carga masiva por hoja de cálculo se hará en una fase posterior; por ahora la captura es
-        manual, uno por uno.
+        manual.
       </p>
       <div className="flex justify-end">
         <Button onClick={onClose}>Entendido</Button>
