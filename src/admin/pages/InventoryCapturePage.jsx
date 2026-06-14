@@ -129,7 +129,7 @@ export function InventoryCapturePage() {
         title="Nuevos artículos"
       >
         <Button variant="outline" onClick={() => setInfoOpen(true)}>
-          ¿Cómo funciona?
+          Importar de archivo
         </Button>
         <Button onClick={save} disabled={!canSave}>
           <Save aria-hidden="true" /> Guardar {products.length > 1 && `(${products.length})`}
@@ -273,7 +273,7 @@ function ProductAccordion({
               </select>
             </Field>
             <Field label="Precio">
-              <input type="number" min="0" className={inputCls} value={product.price} onChange={(e) => onPatch({ price: e.target.value })} placeholder="0" />
+              <CurrencyInput value={product.price} onChange={(v) => onPatch({ price: v })} />
             </Field>
           </div>
 
@@ -466,6 +466,58 @@ function Modal({ title, children, onClose }) {
         </div>
         {children}
       </div>
+    </div>
+  )
+}
+
+// Mexican-currency masked input: shows $###.###,## (dot thousands, comma
+// decimals), text right-aligned, with an MXN suffix. Stores a plain number.
+const numToRaw = (v) =>
+  v === '' || v == null || Number.isNaN(Number(v)) ? '' : String(v).replace('.', ',')
+
+const formatRaw = (raw) => {
+  const [intPart, dec] = raw.split(',')
+  const grouped = (intPart || '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return `$${grouped || '0'}${raw.includes(',') ? `,${dec ?? ''}` : ''}`
+}
+
+function CurrencyInput({ value, onChange }) {
+  const [raw, setRaw] = useState(() => numToRaw(value))
+
+  const handleChange = (e) => {
+    const stripped = e.target.value.replace(/[^\d,]/g, '') // keep digits + decimal comma
+    const [intPart, ...rest] = stripped.split(',')
+    const cleanInt = intPart.replace(/^0+(?=\d)/, '')
+    let next = cleanInt
+    if (stripped.includes(',')) {
+      const dec = rest.join('').replace(/\D/g, '').slice(0, 2)
+      next = `${cleanInt === '' ? '0' : cleanInt},${dec}`
+    }
+    setRaw(next)
+    onChange(next === '' ? '' : Number(next.replace(',', '.')))
+  }
+
+  // On blur, normalize to two decimals so the field reads as $###.###,##
+  const handleBlur = () => {
+    if (raw === '') return
+    const num = Number(raw.replace(',', '.'))
+    if (!Number.isNaN(num)) setRaw(num.toFixed(2).replace('.', ','))
+  }
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={raw === '' ? '' : formatRaw(raw)}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder="$0,00"
+        className="h-10 w-full rounded-md border bg-background pl-3 pr-14 text-right text-sm tabular-nums"
+      />
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+        MXN
+      </span>
     </div>
   )
 }
