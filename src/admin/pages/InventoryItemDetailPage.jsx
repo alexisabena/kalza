@@ -4,15 +4,20 @@ import { catalogs } from '@/data/catalogs'
 import { colors } from '@/data/colors'
 import { sizeRuns } from '@/data/sizes'
 import { getStock } from '@/data/inventory'
+import { useInventoryStore, capturedStock, getCaptured } from '@/stores/inventoryStore'
 import { mxn } from '@/admin/lib/format'
 import { cn } from '@/lib/utils'
 import { PageHeader } from '@/admin/components/PageHeader'
 
+const catalogBrand = (id) => catalogs.find((c) => c.id === id)?.brand ?? '—'
+
 export function InventoryItemDetailPage() {
   const { id } = useParams()
+  const captured = useInventoryStore((s) => s.captured)
+  const item = getCaptured(captured, id)
   const product = getProduct(id)
 
-  if (!product) {
+  if (!item && !product) {
     return (
       <div>
         <PageHeader crumbs={[{ label: 'Inventario', to: '/admin/inventory' }, { label: 'No encontrado' }]} title="Artículo no encontrado" />
@@ -20,6 +25,64 @@ export function InventoryItemDetailPage() {
     )
   }
 
+  // Captured items carry per-color stock + images; base products carry a
+  // deterministic color x size matrix.
+  return item ? <CapturedDetail item={item} /> : <BaseDetail product={product} />
+}
+
+function CapturedDetail({ item }) {
+  return (
+    <div>
+      <PageHeader
+        crumbs={[{ label: 'Inventario', to: '/admin/inventory' }, { label: item.name }]}
+        title={item.name}
+      />
+
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Card label="ID" value={item.id} mono />
+        <Card label="Catálogo" value={catalogBrand(item.catalogId)} />
+        <Card label="Precio" value={mxn(item.price)} primary />
+        <Card label="Stock total" value={capturedStock(item)} />
+      </div>
+
+      {item.description && (
+        <p className="mb-6 max-w-prose text-sm text-muted-foreground">{item.description}</p>
+      )}
+
+      <section className="overflow-hidden rounded-xl border">
+        <h2 className="border-b bg-muted/40 px-5 py-3 font-semibold">Colores</h2>
+        <ul className="divide-y">
+          {item.colors.map((c) => (
+            <li key={c.colorId} className="flex flex-wrap items-center gap-4 px-5 py-3">
+              <span className="flex items-center gap-2 font-medium">
+                <span
+                  className="size-4 rounded-full border"
+                  style={{ backgroundColor: colors[c.colorId]?.hex }}
+                  aria-hidden="true"
+                />
+                {colors[c.colorId]?.name ?? c.colorId}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                Stock: <span className={cn('tabular-nums', c.stock === 0 && 'text-destructive')}>{c.stock}</span>
+              </span>
+              <div className="ml-auto flex items-center gap-1.5">
+                {c.images.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">Sin imágenes</span>
+                ) : (
+                  c.images.map((src, i) => (
+                    <img key={i} src={src} alt="" className="size-12 rounded border object-cover" />
+                  ))
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  )
+}
+
+function BaseDetail({ product }) {
   const catalog = catalogs.find((c) => c.id === product.catalogId)
   const sizes = sizeRuns[product.sizeRun] ?? []
 
@@ -39,7 +102,6 @@ export function InventoryItemDetailPage() {
 
       <p className="mb-6 max-w-prose text-sm text-muted-foreground">{product.description}</p>
 
-      {/* Stock matrix: color × size */}
       <section className="overflow-hidden rounded-xl border">
         <h2 className="border-b bg-muted/40 px-5 py-3 font-semibold">Existencias por color y talla</h2>
         <div className="overflow-x-auto">

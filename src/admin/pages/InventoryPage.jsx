@@ -5,7 +5,12 @@ import { products } from '@/data/products'
 import { inventory } from '@/data/inventory'
 import { catalogs } from '@/data/catalogs'
 import { colors } from '@/data/colors'
-import { useInventoryStore } from '@/stores/inventoryStore'
+import {
+  useInventoryStore,
+  capturedStock,
+  capturedColorIds,
+  capturedCover,
+} from '@/stores/inventoryStore'
 import { mxn } from '@/admin/lib/format'
 import { PageHeader } from '@/admin/components/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -33,9 +38,20 @@ export function InventoryPage() {
       price: p.price,
       colorIds: p.colorIds,
       stock: baseStock(p.id),
+      cover: null,
       captured: false,
     }))
-    const all = [...captured.map((c) => ({ ...c })), ...base]
+    const capturedRows = captured.map((c) => ({
+      id: c.id,
+      name: c.name,
+      catalogId: c.catalogId,
+      price: c.price,
+      colorIds: capturedColorIds(c),
+      stock: capturedStock(c),
+      cover: capturedCover(c),
+      captured: true,
+    }))
+    const all = [...capturedRows, ...base]
     const q = query.trim().toLowerCase()
     return all.filter(
       (r) =>
@@ -94,18 +110,23 @@ export function InventoryPage() {
               <tr key={r.id} className="hover:bg-muted/40">
                 <td className="px-5 py-2.5 font-mono text-xs text-muted-foreground">{r.id}</td>
                 <td className="px-5 py-2.5">
-                  {r.captured ? (
-                    <span className="font-medium">{r.name}</span>
-                  ) : (
-                    <Link to={`/admin/inventory/${r.id}`} className="font-medium text-primary hover:underline">
-                      {r.name}
-                    </Link>
-                  )}
-                  {r.captured && (
-                    <span className="ml-2 rounded bg-success/15 px-1.5 py-0.5 text-[11px] font-medium text-success">
-                      Nuevo
+                  <div className="flex items-center gap-2.5">
+                    {r.cover ? (
+                      <img src={r.cover} alt="" className="size-9 shrink-0 rounded border object-cover" />
+                    ) : (
+                      <span className="size-9 shrink-0 rounded border bg-muted" aria-hidden="true" />
+                    )}
+                    <span>
+                      <Link to={`/admin/inventory/${r.id}`} className="font-medium text-primary hover:underline">
+                        {r.name}
+                      </Link>
+                      {r.captured && (
+                        <span className="ml-2 rounded bg-success/15 px-1.5 py-0.5 text-[11px] font-medium text-success">
+                          Nuevo
+                        </span>
+                      )}
                     </span>
-                  )}
+                  </div>
                 </td>
                 <td className="px-5 py-2.5 text-muted-foreground">{catalogBrand(r.catalogId)}</td>
                 <td className="px-5 py-2.5">
