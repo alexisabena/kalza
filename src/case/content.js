@@ -75,8 +75,12 @@ export const content = {
     },
     story: {
       eyebrow: 'The story',
-      title: 'Rosa has sold shoes to her neighborhood for fifteen years',
-      lead: 'This is how a paper catalog became an app — without losing the conversation that made it work.',
+      title: 'A paper catalog, a conversation',
+      intro: [
+        'During Covid, our world changed but our interactions needed more time. This project is a recreation of a real, ambitious project that set out to reframe selling by paper catalog — respecting the place it held in our interactions.',
+        'For many Mexican women the catalog is a tool to socialize, a way to support their household income, and a way to stay in touch with the people close to them. We needed to strengthen those relationships and connections while providing stability in uncertain times.',
+        'This is how a paper catalog became a communication channel — without losing the conversation that made it work.',
+      ],
       beats: [
         { title: 'Rosa shares her link', body: 'She sends it on WhatsApp like she used to hand over the catalog. Her client opens a store that feels like Rosa’s.' },
         { title: 'Her client places the order', body: 'The client browses and reserves — and the order lands on Rosa’s phone at the same moment.' },
@@ -102,6 +106,12 @@ export const content = {
       labelSeller: 'Seller',
       labelBuyer: 'Buyer',
       labelBackoffice: 'Back office',
+      payCta: 'Pay',
+      checkBuyer: 'Client reserved',
+      checkBo: 'Wholesaler confirmed',
+      checkPay: 'Payment confirmed',
+      waiting: 'Waiting for confirmations',
+      reservedSet: 'Reservation set',
     },
   },
 
@@ -177,8 +187,12 @@ export const content = {
     },
     story: {
       eyebrow: 'La historia',
-      title: 'Rosa lleva quince años vendiendo zapatos en su colonia',
-      lead: 'Así un catálogo de papel se volvió una app — sin perder la conversación que lo hacía funcionar.',
+      title: 'Un catálogo de papel, una conversación',
+      intro: [
+        'Durante el Covid, nuestro mundo cambió pero nuestras interacciones necesitaban más tiempo. Este proyecto es la recreación de un proyecto real y ambicioso que buscó replantear la venta por catálogo de papel — respetando el lugar que tenía en nuestras interacciones.',
+        'Para muchas mujeres mexicanas el catálogo es una herramienta para socializar, una forma de apoyar el ingreso del hogar y de mantenerse en contacto con los suyos. Necesitábamos fortalecer esas relaciones y vínculos mientras brindábamos estabilidad en tiempos de incertidumbre.',
+        'Así un catálogo de papel se volvió un canal de comunicación — sin perder la conversación que lo hacía funcionar.',
+      ],
       beats: [
         { title: 'Rosa comparte su enlace', body: 'Lo manda por WhatsApp como antes entregaba el catálogo. Su clienta abre una tienda que se siente de Rosa.' },
         { title: 'Su clienta hace el pedido', body: 'La clienta navega y aparta — y el pedido aparece en el teléfono de Rosa al mismo tiempo.' },
@@ -204,6 +218,12 @@ export const content = {
       labelSeller: 'Vendedora',
       labelBuyer: 'Compradora',
       labelBackoffice: 'Back-office',
+      payCta: 'Pagar',
+      checkBuyer: 'Clienta apartó',
+      checkBo: 'Mayorista confirmó',
+      checkPay: 'Pago confirmado',
+      waiting: 'Esperando confirmaciones',
+      reservedSet: 'Apartado confirmado',
     },
   },
 }

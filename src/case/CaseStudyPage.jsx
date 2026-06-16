@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
+import '@/case/motion.css'
 import { LanguageProvider, useLang } from '@/case/LanguageContext'
 import { CaseStudyView } from '@/case/CaseStudyView'
 import { StoryView } from '@/case/StoryView'
