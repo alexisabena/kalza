@@ -91,7 +91,8 @@ function OrderScreen({ current = 1 }) {
   return (
     <div className="flex h-full flex-col gap-4 p-4">
       <p className="text-xs font-semibold">{t.phone.orderTitle}</p>
-      <ol className="flex flex-col gap-0">
+      {/* Re-fade the progress when the status changes — communicates the update */}
+      <ol key={current} className="flex flex-col gap-0 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
         {t.phone.steps.map((label, i) => {
           const done = i <= current
           return (

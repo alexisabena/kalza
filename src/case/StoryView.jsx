@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { catalogs } from '@/data/catalogs'
+import { cn } from '@/lib/utils'
 import { useLang } from '@/case/LanguageContext'
 import { PhoneFrame } from '@/case/PhoneScreens'
 import { BackofficeMockup } from '@/case/BackofficeMockup'
@@ -8,28 +9,34 @@ import { useScrollScreen } from '@/case/useScrollScreen'
 const KALZA = catalogs[0]
 
 // The choreography: which devices are on stage per step, and the status each
-// shows. The seller phone is persistent; the right slot cycles buyer →
-// back-office → buyer as the order propagates across roles.
+// shows. Layout is fixed — back office (left) · seller (centre) · buyer (right)
+// — so the seller is the constant anchor and partners enter from their own side
+// (spatial continuity, per the motion guidance).
 const STEPS = [
-  { id: 'share', seller: { screen: 'share' }, right: null },
-  { id: 'order', seller: { screen: 'order', orderStep: 0 }, right: { type: 'buyer', screen: 'catalog' } },
-  { id: 'confirm', seller: { screen: 'order', orderStep: 1 }, right: { type: 'backoffice' } },
-  { id: 'paid', seller: { screen: 'order', orderStep: 2 }, right: { type: 'buyer', screen: 'order', orderStep: 2 } },
+  { id: 'share', seller: { screen: 'share' }, side: null },
+  { id: 'order', seller: { screen: 'order', orderStep: 0 }, side: 'buyer', buyer: { screen: 'catalog' } },
+  { id: 'confirm', seller: { screen: 'order', orderStep: 1 }, side: 'backoffice' },
+  { id: 'paid', seller: { screen: 'order', orderStep: 2 }, side: 'buyer', buyer: { screen: 'order', orderStep: 2 } },
 ]
 
-function RightDevice({ right, idKey }) {
-  if (!right) return null
-  if (right.type === 'backoffice') {
-    return <BackofficeMockup key={`bo-${idKey}`} className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-500" />
-  }
+// A labelled device that slides in from its own side and out faster than it
+// entered. Transforms/opacity only (GPU); animation gated to motion-safe.
+function Device({ label, present = true, from, children }) {
+  const offset = from === 'left' ? '-translate-x-10' : from === 'right' ? 'translate-x-10' : ''
   return (
-    <PhoneFrame
-      key={`buyer-${idKey}`}
-      catalog={KALZA}
-      screen={right.screen}
-      orderStep={right.orderStep}
-      className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:duration-500"
-    />
+    <div
+      className={cn(
+        'flex flex-col items-center gap-3 will-change-transform motion-safe:transition-[transform,opacity]',
+        present
+          ? 'translate-x-0 opacity-100 motion-safe:duration-500 motion-safe:ease-out'
+          : cn('pointer-events-none opacity-0 motion-safe:duration-300 motion-safe:ease-in', offset)
+      )}
+    >
+      <span className="rounded-full border bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      {children}
+    </div>
   )
 }
 
@@ -41,6 +48,11 @@ export function StoryView() {
   const step = STEPS[index]
   const beat = t.story.beats[index]
 
+  const boPresent = step.side === 'backoffice'
+  const buyerPresent = step.side === 'buyer'
+  // Keep the buyer's last screen while it slides away.
+  const buyer = step.buyer ?? { screen: 'catalog' }
+
   return (
     <div>
       {/* Intro */}
@@ -50,21 +62,41 @@ export function StoryView() {
         <p className="mt-5 max-w-xl text-lg text-muted-foreground">{t.story.lead}</p>
       </section>
 
-      {/* Desktop: sticky stage, devices front and centre, caption at the bottom */}
+      {/* Desktop: sticky stage — back office · seller · buyer, caption at bottom */}
       <div ref={ref} className="hidden lg:block">
         <div className="sticky top-0 flex h-dvh flex-col">
-          <div className="flex flex-1 items-center justify-center gap-10 px-6 pt-14">
-            <PhoneFrame
-              key={`seller-${step.id}`}
-              catalog={KALZA}
-              screen={step.seller.screen}
-              orderStep={step.seller.orderStep}
-              className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500"
-            />
-            <RightDevice right={step.right} idKey={step.id} />
+          <div className="flex flex-1 items-center justify-center gap-8 px-6 pt-14">
+            {/* left slot — back office */}
+            <div className="flex w-[360px] justify-end">
+              <Device label={t.phone.labelBackoffice} present={boPresent} from="left">
+                <BackofficeMockup />
+              </Device>
+            </div>
+
+            {/* centre — seller (anchor; re-fades only when its screen changes) */}
+            <Device label={t.phone.labelSeller}>
+              <PhoneFrame
+                key={`seller-${step.seller.screen}`}
+                catalog={KALZA}
+                screen={step.seller.screen}
+                orderStep={step.seller.orderStep}
+                className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"
+              />
+            </Device>
+
+            {/* right slot — buyer */}
+            <div className="flex w-[360px] justify-start">
+              <Device label={t.phone.labelBuyer} present={buyerPresent} from="right">
+                <PhoneFrame catalog={KALZA} screen={buyer.screen} orderStep={buyer.orderStep} />
+              </Device>
+            </div>
           </div>
+
           <div className="pb-14">
-            <div key={step.id} className="mx-auto max-w-xl px-6 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-500">
+            <div
+              key={step.id}
+              className="mx-auto max-w-xl px-6 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-300"
+            >
               <span className="text-xs font-semibold text-primary">{index + 1} / {STEPS.length}</span>
               <h2 className="mt-1 text-2xl font-bold">{beat.title}</h2>
               <p className="mt-2 text-muted-foreground">{beat.body}</p>
@@ -80,16 +112,23 @@ export function StoryView() {
         </div>
       </div>
 
-      {/* Mobile: stacked, devices then caption */}
+      {/* Mobile: stacked, labelled devices then caption */}
       <div className="flex flex-col gap-16 py-8 lg:hidden">
         {STEPS.map((s, i) => (
           <section key={s.id} className="flex flex-col items-center gap-5 px-6 text-center">
-            <div className="flex w-full flex-wrap items-center justify-center gap-4">
-              <PhoneFrame catalog={KALZA} screen={s.seller.screen} orderStep={s.seller.orderStep} className="scale-90" />
-              {s.right && (
-                s.right.type === 'backoffice'
-                  ? <BackofficeMockup className="scale-90" />
-                  : <PhoneFrame catalog={KALZA} screen={s.right.screen} orderStep={s.right.orderStep} className="scale-90" />
+            <div className="flex w-full flex-wrap items-start justify-center gap-4">
+              {s.side === 'backoffice' && (
+                <Device label={t.phone.labelBackoffice}>
+                  <BackofficeMockup className="scale-90" />
+                </Device>
+              )}
+              <Device label={t.phone.labelSeller}>
+                <PhoneFrame catalog={KALZA} screen={s.seller.screen} orderStep={s.seller.orderStep} className="scale-90" />
+              </Device>
+              {s.side === 'buyer' && (
+                <Device label={t.phone.labelBuyer}>
+                  <PhoneFrame catalog={KALZA} screen={s.buyer.screen} orderStep={s.buyer.orderStep} className="scale-90" />
+                </Device>
               )}
             </div>
             <div className="max-w-md">

@@ -99,6 +99,9 @@ export const content = {
       boNewOrder: 'New order',
       boSeller: 'Seller',
       boConfirm: 'Confirm & reserve',
+      labelSeller: 'Seller',
+      labelBuyer: 'Buyer',
+      labelBackoffice: 'Back office',
     },
   },
 
@@ -198,6 +201,9 @@ export const content = {
       boNewOrder: 'Pedido nuevo',
       boSeller: 'Vendedora',
       boConfirm: 'Confirmar y apartar',
+      labelSeller: 'Vendedora',
+      labelBuyer: 'Compradora',
+      labelBackoffice: 'Back-office',
     },
   },
 }
