@@ -1,84 +1,108 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { catalogs } from '@/data/catalogs'
-import { cn } from '@/lib/utils'
 import { useLang } from '@/case/LanguageContext'
 import { PhoneFrame } from '@/case/PhoneScreens'
+import { BackofficeMockup } from '@/case/BackofficeMockup'
 import { useScrollScreen } from '@/case/useScrollScreen'
 
-// Story layout: the device is front and centre. A sticky phone holds the middle
-// of the screen while the story beats scroll past on alternating sides, the
-// phone changing screen for each beat.
+const KALZA = catalogs[0]
+
+// The choreography: which devices are on stage per step, and the status each
+// shows. The seller phone is persistent; the right slot cycles buyer →
+// back-office → buyer as the order propagates across roles.
+const STEPS = [
+  { id: 'share', seller: { screen: 'share' }, right: null },
+  { id: 'order', seller: { screen: 'order', orderStep: 0 }, right: { type: 'buyer', screen: 'catalog' } },
+  { id: 'confirm', seller: { screen: 'order', orderStep: 1 }, right: { type: 'backoffice' } },
+  { id: 'paid', seller: { screen: 'order', orderStep: 2 }, right: { type: 'buyer', screen: 'order', orderStep: 2 } },
+]
+
+function RightDevice({ right, idKey }) {
+  if (!right) return null
+  if (right.type === 'backoffice') {
+    return <BackofficeMockup key={`bo-${idKey}`} className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-500" />
+  }
+  return (
+    <PhoneFrame
+      key={`buyer-${idKey}`}
+      catalog={KALZA}
+      screen={right.screen}
+      orderStep={right.orderStep}
+      className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:duration-500"
+    />
+  )
+}
+
 export function StoryView() {
   const { t } = useLang()
   const ref = useRef(null)
-  const screen = useScrollScreen(ref, 'catalog')
-
-  const [themeIdx, setThemeIdx] = useState(0)
-  useEffect(() => {
-    if (screen !== 'theme') return
-    const id = setInterval(() => setThemeIdx((i) => (i + 1) % catalogs.length), 1700)
-    return () => clearInterval(id)
-  }, [screen])
-
-  const catalog = screen === 'theme' ? catalogs[themeIdx] : catalogs[0]
-  const phoneScreen = screen === 'theme' ? 'catalog' : screen
+  const activeId = useScrollScreen(ref, 'share')
+  const index = Math.max(0, STEPS.findIndex((s) => s.id === activeId))
+  const step = STEPS[index]
+  const beat = t.story.beats[index]
 
   return (
-    <div ref={ref} className="mx-auto max-w-5xl px-6">
+    <div>
       {/* Intro */}
-      <section className="flex min-h-[60vh] flex-col items-center justify-center py-16 text-center">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-primary">
-          {t.story.eyebrow}
-        </p>
+      <section className="flex min-h-[58vh] flex-col items-center justify-center px-6 py-16 text-center">
+        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-primary">{t.story.eyebrow}</p>
         <h1 className="max-w-3xl text-3xl font-bold leading-tight sm:text-5xl">{t.story.title}</h1>
         <p className="mt-5 max-w-xl text-lg text-muted-foreground">{t.story.lead}</p>
       </section>
 
-      {/* Desktop: sticky centre phone + beats scrolling on alternating sides */}
-      <div className="hidden lg:block">
-        <div
-          className="pointer-events-none sticky top-0 z-0 flex h-dvh items-center justify-center"
-          aria-hidden="true"
-        >
-          <PhoneFrame
-            key={`${catalog.id}-${phoneScreen}`}
-            catalog={catalog}
-            screen={phoneScreen}
-            className="scale-110 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500"
-          />
+      {/* Desktop: sticky stage, devices front and centre, caption at the bottom */}
+      <div ref={ref} className="hidden lg:block">
+        <div className="sticky top-0 flex h-dvh flex-col">
+          <div className="flex flex-1 items-center justify-center gap-10 px-6 pt-14">
+            <PhoneFrame
+              key={`seller-${step.id}`}
+              catalog={KALZA}
+              screen={step.seller.screen}
+              orderStep={step.seller.orderStep}
+              className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500"
+            />
+            <RightDevice right={step.right} idKey={step.id} />
+          </div>
+          <div className="pb-14">
+            <div key={step.id} className="mx-auto max-w-xl px-6 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-500">
+              <span className="text-xs font-semibold text-primary">{index + 1} / {STEPS.length}</span>
+              <h2 className="mt-1 text-2xl font-bold">{beat.title}</h2>
+              <p className="mt-2 text-muted-foreground">{beat.body}</p>
+            </div>
+          </div>
         </div>
 
-        <div className="relative z-10 -mt-[100dvh]">
-          {t.story.beats.map((b, i) => (
-            <section
-              key={b.title}
-              data-screen={b.screen}
-              className={cn('flex min-h-dvh items-center', i % 2 ? 'justify-end' : 'justify-start')}
-            >
-              <div className="w-80 rounded-2xl border bg-background/85 p-6 shadow-sm backdrop-blur">
-                <h2 className="mb-2 text-2xl font-bold">{b.title}</h2>
-                <p className="leading-relaxed text-muted-foreground">{b.body}</p>
-              </div>
-            </section>
+        {/* invisible scroll drivers */}
+        <div className="-mt-[100dvh]">
+          {STEPS.map((s) => (
+            <section key={s.id} data-screen={s.id} className="min-h-dvh" aria-hidden="true" />
           ))}
         </div>
       </div>
 
-      {/* Mobile: stacked beats, each with its own phone */}
+      {/* Mobile: stacked, devices then caption */}
       <div className="flex flex-col gap-16 py-8 lg:hidden">
-        {t.story.beats.map((b) => (
-          <section key={b.title} className="flex flex-col items-center gap-6 text-center">
-            <PhoneFrame catalog={b.screen === 'theme' ? catalogs[1] : catalogs[0]} screen={b.screen === 'theme' ? 'catalog' : b.screen} />
+        {STEPS.map((s, i) => (
+          <section key={s.id} className="flex flex-col items-center gap-5 px-6 text-center">
+            <div className="flex w-full flex-wrap items-center justify-center gap-4">
+              <PhoneFrame catalog={KALZA} screen={s.seller.screen} orderStep={s.seller.orderStep} className="scale-90" />
+              {s.right && (
+                s.right.type === 'backoffice'
+                  ? <BackofficeMockup className="scale-90" />
+                  : <PhoneFrame catalog={KALZA} screen={s.right.screen} orderStep={s.right.orderStep} className="scale-90" />
+              )}
+            </div>
             <div className="max-w-md">
-              <h2 className="mb-2 text-2xl font-bold">{b.title}</h2>
-              <p className="leading-relaxed text-muted-foreground">{b.body}</p>
+              <span className="text-xs font-semibold text-primary">{i + 1} / {STEPS.length}</span>
+              <h2 className="mt-1 text-2xl font-bold">{t.story.beats[i].title}</h2>
+              <p className="mt-2 text-muted-foreground">{t.story.beats[i].body}</p>
             </div>
           </section>
         ))}
       </div>
 
       {/* Close */}
-      <section className="flex min-h-[60vh] flex-col items-center justify-center py-16 text-center">
+      <section className="flex min-h-[58vh] flex-col items-center justify-center px-6 py-16 text-center">
         <h2 className="max-w-2xl text-2xl font-bold sm:text-3xl">{t.story.close.title}</h2>
         <p className="mt-4 max-w-xl text-lg text-muted-foreground">{t.story.close.body}</p>
       </section>

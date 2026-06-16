@@ -7,6 +7,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { useLang } from '@/case/LanguageContext'
 import { PhoneFrame } from '@/case/PhoneScreens'
 import { useScrollScreen } from '@/case/useScrollScreen'
+import { QrAppModal } from '@/case/QrAppModal'
 
 // Font + radius per brand are design facts, not translated copy.
 const THEME_META = {
@@ -21,6 +22,7 @@ export function CaseStudyView() {
   const { t } = useLang()
   const ref = useRef(null)
   const screen = useScrollScreen(ref, 'catalog')
+  const [qrOpen, setQrOpen] = useState(false)
 
   // During the theming section, cycle the phone through the brands.
   const [themeIdx, setThemeIdx] = useState(0)
@@ -45,9 +47,9 @@ export function CaseStudyView() {
             <h1 className="text-4xl font-bold leading-tight sm:text-5xl">{t.hero.title}</h1>
             <p className="mt-5 text-lg text-muted-foreground">{t.hero.lead}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/app" className={cn(buttonVariants(), 'px-5')}>
+              <button type="button" onClick={() => setQrOpen(true)} className={cn(buttonVariants(), 'px-5')}>
                 <Store aria-hidden="true" /> {t.hero.ctaApp}
-              </Link>
+              </button>
               <Link to="/admin" className={cn(buttonVariants({ variant: 'outline' }), 'px-5')}>
                 <LayoutDashboard aria-hidden="true" /> {t.hero.ctaAdmin}
               </Link>
@@ -109,7 +111,7 @@ export function CaseStudyView() {
 
           <Beat screen="catalog" eyebrow={t.superficies.eyebrow} title={t.superficies.title}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Surface icon={Store} data={t.superficies.app} to="/app" />
+              <Surface icon={Store} data={t.superficies.app} onClick={() => setQrOpen(true)} />
               <Surface icon={LayoutDashboard} data={t.superficies.admin} to="/admin" />
             </div>
           </Beat>
@@ -134,11 +136,13 @@ export function CaseStudyView() {
             <p className="text-lg font-bold text-primary">Kalza</p>
             <p className="text-sm text-muted-foreground">{t.footer.brandLine}</p>
           </div>
-          <Link to="/app" className={cn(buttonVariants(), 'px-5')}>
+          <button type="button" onClick={() => setQrOpen(true)} className={cn(buttonVariants(), 'px-5')}>
             {t.footer.cta} <ArrowRight aria-hidden="true" />
-          </Link>
+          </button>
         </div>
       </footer>
+
+      {qrOpen && <QrAppModal onClose={() => setQrOpen(false)} />}
     </div>
   )
 }
@@ -164,15 +168,22 @@ function Meta({ label, value }) {
   )
 }
 
-function Surface({ icon: Icon, data, to }) {
+function Surface({ icon: Icon, data, to, onClick }) {
+  const cls = cn(buttonVariants({ variant: 'outline' }), 'self-start px-4')
   return (
     <div className="flex flex-col rounded-xl border p-5">
       <Icon className="mb-3 size-6 text-primary" aria-hidden="true" />
       <h3 className="mb-1.5 text-lg font-semibold text-foreground">{data.title}</h3>
       <p className="mb-4 flex-1 text-sm">{data.body}</p>
-      <Link to={to} className={cn(buttonVariants({ variant: 'outline' }), 'self-start px-4')}>
-        {data.cta} <ArrowRight aria-hidden="true" />
-      </Link>
+      {onClick ? (
+        <button type="button" onClick={onClick} className={cls}>
+          {data.cta} <ArrowRight aria-hidden="true" />
+        </button>
+      ) : (
+        <Link to={to} className={cls}>
+          {data.cta} <ArrowRight aria-hidden="true" />
+        </Link>
+      )}
     </div>
   )
 }

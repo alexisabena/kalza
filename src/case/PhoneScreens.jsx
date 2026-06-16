@@ -7,7 +7,7 @@ import { useLang } from '@/case/LanguageContext'
 // A phone frame whose color, radius and font come from CSS vars. Wrapping it in
 // [data-theme="…"] re-themes everything through the cascade — the real app's
 // mechanism, shown live. `screen` selects which mock screen to render.
-export function PhoneFrame({ catalog, screen, className }) {
+export function PhoneFrame({ catalog, screen, orderStep = 1, className }) {
   return (
     <div
       data-theme={catalog.themeId || undefined}
@@ -23,7 +23,7 @@ export function PhoneFrame({ catalog, screen, className }) {
         {screen === 'share' ? (
           <ShareScreen />
         ) : screen === 'order' ? (
-          <OrderScreen />
+          <OrderScreen current={orderStep} />
         ) : (
           <CatalogScreen catalog={catalog} />
         )}
@@ -86,9 +86,8 @@ function ShareScreen() {
   )
 }
 
-function OrderScreen() {
+function OrderScreen({ current = 1 }) {
   const { t } = useLang()
-  const current = 1 // "Reserved / Apartado" — payment window open
   return (
     <div className="flex h-full flex-col gap-4 p-4">
       <p className="text-xs font-semibold">{t.phone.orderTitle}</p>
@@ -117,9 +116,11 @@ function OrderScreen() {
           )
         })}
       </ol>
-      <div className="mt-auto rounded-lg border border-primary bg-primary/5 p-2.5 text-[10px] text-foreground">
-        {t.phone.payNote}
-      </div>
+      {current === 1 && (
+        <div className="mt-auto rounded-lg border border-primary bg-primary/5 p-2.5 text-[10px] text-foreground">
+          {t.phone.payNote}
+        </div>
+      )}
     </div>
   )
 }

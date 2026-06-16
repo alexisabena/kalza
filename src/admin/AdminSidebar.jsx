@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import {
   LayoutDashboard,
   ClipboardList,
@@ -7,6 +7,7 @@ import {
   Users,
   Boxes,
   ShieldCheck,
+  ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStaffStore } from '@/stores/staffStore'
@@ -39,6 +40,14 @@ export function AdminSidebar() {
         <span className="text-lg font-bold text-primary">Kalza</span>
         <span className="text-xs text-muted-foreground">Back-office</span>
       </div>
+
+      {/* Back to the portfolio case study */}
+      <Link
+        to="/"
+        className="flex items-center gap-2 border-b px-5 py-2.5 text-xs font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+      >
+        <ArrowLeft className="size-3.5" aria-hidden="true" /> Caso de estudio
+      </Link>
 
       <nav className="flex flex-1 flex-col gap-1 p-3">
         {nav.map(({ to, label, icon: Icon, end }) => (
