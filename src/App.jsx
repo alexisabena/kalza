@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
+import { TouchCursor } from '@/components/TouchCursor'
 import { useSessionStore } from '@/stores/sessionStore'
 import { CatalogoScreen } from '@/screens/CatalogoScreen'
 import { DashboardScreen } from '@/screens/DashboardScreen'
@@ -33,24 +34,32 @@ function MobileApp() {
     pathname === '/carrito' ||
     pathname === '/compartir'
 
+  // On desktop the app is a real mobile experience, not a stretched one: a
+  // centered phone-width column on a neutral backdrop (like devtools' mobile
+  // view). The fixed bars below center themselves to the same max-w-md, so they
+  // align with this column instead of spanning the whole desktop width.
+  // (Standard for the case-study template — see portfolio-framework-spec.md.)
   return (
-    <div className="mx-auto min-h-dvh max-w-md">
-      <TopBar />
-      <main className={immersive ? 'pt-14' : 'pb-[60px] pt-14'}>
-        <Routes>
-          <Route path="/app" element={<Home />} />
-          <Route path="/catalogo" element={<CatalogoScreen />} />
-          <Route path="/producto/:id" element={<ProductDetailScreen />} />
-          <Route path="/carrito" element={<CartScreen />} />
-          <Route path="/compartir" element={<ShareCatalogScreen />} />
-          <Route path="/clientes" element={<ClientesScreen />} />
-          <Route path="/pedidos" element={<PedidosScreen />} />
-          <Route path="/pedido/:id" element={<OrderDetailScreen />} />
-          <Route path="/ingresos" element={<IngresosScreen />} />
-          <Route path="*" element={<Navigate to="/app" replace />} />
-        </Routes>
-      </main>
-      {!immersive && <BottomNav />}
+    <div className="lg:flex lg:min-h-dvh lg:justify-center lg:bg-neutral-900">
+      <div className="relative mx-auto min-h-dvh w-full max-w-md bg-background lg:cursor-none lg:shadow-2xl">
+        <TouchCursor />
+        <TopBar />
+        <main className={immersive ? 'pt-14' : 'pb-[60px] pt-14'}>
+          <Routes>
+            <Route path="/app" element={<Home />} />
+            <Route path="/catalogo" element={<CatalogoScreen />} />
+            <Route path="/producto/:id" element={<ProductDetailScreen />} />
+            <Route path="/carrito" element={<CartScreen />} />
+            <Route path="/compartir" element={<ShareCatalogScreen />} />
+            <Route path="/clientes" element={<ClientesScreen />} />
+            <Route path="/pedidos" element={<PedidosScreen />} />
+            <Route path="/pedido/:id" element={<OrderDetailScreen />} />
+            <Route path="/ingresos" element={<IngresosScreen />} />
+            <Route path="*" element={<Navigate to="/app" replace />} />
+          </Routes>
+        </main>
+        {!immersive && <BottomNav />}
+      </div>
     </div>
   )
 }

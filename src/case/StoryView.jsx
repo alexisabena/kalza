@@ -29,21 +29,37 @@ function sellerChecks(index, phase) {
   }
 }
 
-function Device({ label, present = true, from, children }) {
-  const offset = from === 'left' ? '-translate-x-10' : from === 'right' ? 'translate-x-10' : ''
+// Devices stay on stage the whole time — the inactive ones recede backstage
+// (dimmed under a white veil) rather than sliding off, so they never surprise
+// the viewer; the spotlight just moves between them step to step.
+function Device({ label, active = true, radius = '2.4rem', children }) {
   return (
-    <div
-      className={cn(
-        'flex flex-col items-center gap-3 will-change-transform motion-safe:transition-[transform,opacity]',
-        present
-          ? 'translate-x-0 opacity-100 motion-safe:duration-500 motion-safe:ease-out'
-          : cn('pointer-events-none opacity-0 motion-safe:duration-300 motion-safe:ease-in', offset)
-      )}
-    >
-      <span className="rounded-full border bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className={cn('flex flex-col items-center gap-3', !active && 'pointer-events-none')} aria-hidden={!active}>
+      <span
+        className={cn(
+          'rounded-full border bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-wide motion-safe:transition-colors motion-safe:duration-500',
+          active ? 'text-muted-foreground' : 'text-muted-foreground/40'
+        )}
+      >
         {label}
       </span>
-      {children}
+      <div
+        className={cn(
+          'relative will-change-transform motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out',
+          active ? 'scale-100' : 'scale-[0.97]'
+        )}
+      >
+        {children}
+        {/* Backstage veil — barely there when active, dulls the device when not. */}
+        <div
+          aria-hidden="true"
+          style={{ borderRadius: radius }}
+          className={cn(
+            'pointer-events-none absolute inset-0 bg-white motion-safe:transition-opacity motion-safe:duration-500',
+            active ? 'opacity-0' : 'opacity-60'
+          )}
+        />
+      </div>
     </div>
   )
 }
@@ -86,14 +102,15 @@ export function StoryView() {
       <div ref={ref} className="hidden lg:block">
         <div className="sticky top-0 flex h-dvh flex-col">
           <div className="flex flex-1 items-center justify-center gap-8 px-6 pt-14">
-            {/* left — back office */}
+            {/* left — back office (recedes backstage unless it's confirming) */}
             <div className="flex w-[360px] justify-end">
-              <Device label={t.phone.labelBackoffice} present={boPresent} from="left">
-                <BackofficeMockup phase={boPresent ? phase : undefined} />
+              <Device label={t.phone.labelBackoffice} active={boPresent} radius="0.75rem">
+                {/* Once it has confirmed (later steps), keep it showing confirmed backstage. */}
+                <BackofficeMockup phase={boPresent ? phase : index > 2 ? 2 : undefined} />
               </Device>
             </div>
 
-            {/* centre — seller (anchor) */}
+            {/* centre — seller (anchor; always lit) */}
             <Device label={t.phone.labelSeller}>
               {index === 0 ? (
                 <PhoneFrame key="seller-share" catalog={KALZA} screen="share" className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300" />
@@ -104,9 +121,9 @@ export function StoryView() {
               )}
             </Device>
 
-            {/* right — buyer */}
+            {/* right — buyer (recedes backstage unless it's her turn) */}
             <div className="flex w-[360px] justify-start">
-              <Device label={t.phone.labelBuyer} present={buyerPresent} from="right">
+              <Device label={t.phone.labelBuyer} active={buyerPresent}>
                 <PhoneFrame catalog={KALZA}>
                   <BuyerScreen catalog={KALZA} kind={step.buyerKind ?? 'reserve'} phase={buyerPresent ? phase : 0} />
                 </PhoneFrame>

@@ -1,0 +1,183 @@
+/* Motion system — single source of truth (portfolio-framework-spec §"Key
+   architectural moves" #2). Primitives below; per-role presets derive from them.
+   ux-motion profiles: buyer = exciting/springy · seller = optimistic ease-out ·
+   wholesaler = efficient/restrained. Components gate everything motion-safe;
+   these tokens just name the values so they stay consistent app-wide + portfolio. */
+:root {
+  /* easings */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* subtle overshoot */
+
+  /* durations */
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 400ms;
+
+  /* per-role presets */
+  --motion-buyer-ease: var(--ease-spring);
+  --motion-buyer-dur: 300ms;
+  --motion-seller-ease: var(--ease-out);
+  --motion-seller-dur: 250ms;
+  --motion-wholesaler-ease: var(--ease-out);
+  --motion-wholesaler-dur: 200ms;
+}
+
+/* ── Shared success moment: checkmark draw-on + pop ──────────────────────── */
+@keyframes case-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes case-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes case-ripple {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.case-check-path {
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  animation: case-draw var(--dur-slow) var(--ease-out) 140ms forwards;
+}
+
+.case-pop {
+  animation: case-pop 340ms var(--ease-out) forwards;
+}
+
+.case-ripple {
+  animation: case-ripple 1000ms var(--ease-out) infinite;
+}
+
+/* ── Buyer action motion (subtle spring — decision 2026-06-15 #3) ─────────── */
+
+/* Cart-badge pop when the count changes — small overshoot, then settle. */
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.badge-pop {
+  animation: badge-pop var(--motion-buyer-dur) var(--ease-spring);
+}
+
+/* Item acknowledges being added — a quick bump, no overshoot loop. */
+@keyframes add-bump {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.add-bump {
+  animation: add-bump var(--motion-buyer-dur) var(--ease-spring);
+}
+
+/* Apartar success burst — a ring that expands and fades behind the check. */
+@keyframes success-burst {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.success-burst {
+  animation: success-burst 650ms var(--ease-out) forwards;
+}
+
+/* Carousel auto-advance progress — a bar that fills over the slide interval.
+   Duration is set inline (matches the autoplay interval). */
+@keyframes carousel-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.carousel-progress {
+  transform-origin: left;
+  animation: carousel-progress linear forwards;
+}
+
+/* Lightbox swipe nudge — a one-time hint that drifts left to invite swiping. */
+@keyframes swipe-hint {
+  0% {
+    transform: translateX(22%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.95;
+  }
+  62% {
+    transform: translateX(-32%);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateX(-32%);
+    opacity: 0;
+  }
+}
+
+.swipe-hint {
+  animation: swipe-hint 1700ms var(--ease-out) 350ms 2;
+}
+
+/* Reduced motion: show final states instantly, no looping/expanding motion. */
+@media (prefers-reduced-motion: reduce) {
+  .case-pop,
+  .badge-pop,
+  .add-bump {
+    animation: none;
+  }
+  .case-check-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .case-ripple,
+  .success-burst,
+  .swipe-hint {
+    animation: none;
+    opacity: 0;
+  }
+  .carousel-progress {
+    animation: none;
+  }
+}

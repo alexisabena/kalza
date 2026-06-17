@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Check, Send, Link2 } from 'lucide-react'
 import { productsByCatalog } from '@/data/products'
 import { mxn } from '@/data/pricing'
 import { cn } from '@/lib/utils'
+import { useCascadeReveal } from '@/lib/useCascadeReveal'
+import { ProductImage } from '@/components/ProductImage'
 import { useLang } from '@/case/LanguageContext'
 
 // A phone frame whose color, radius and font come from CSS vars. Wrapping it in
@@ -36,30 +39,66 @@ export function PhoneFrame({ catalog, screen, orderStep = 1, className, children
 
 export { CatalogScreen }
 
+// Mirrors the real home (CatalogoScreen): real photos, CSS-columns masonry, and
+// the same top-to-bottom price-plate cascade — so the landing/story catalog reads
+// like the shipping app, not a separate placeholder grid.
 function CatalogScreen({ catalog }) {
   const { t } = useLang()
-  const products = (productsByCatalog[catalog.id] ?? []).slice(0, 4)
+  const products = productsByCatalog[catalog.id] ?? []
+
   return (
     <div className="flex h-full flex-col">
-      <div className="grid flex-1 grid-cols-2 content-start gap-2 p-2.5">
-        {products.map((p, i) => (
-          <div key={p.id} className="overflow-hidden rounded-lg bg-muted">
-            <div className={cn('w-full', i % 2 === 0 ? 'aspect-[4/5]' : 'aspect-square')}>
-              <div className="flex size-full items-center justify-center bg-primary/10 text-2xl font-bold text-primary/40">
-                {catalog.brand.charAt(0)}
-              </div>
-            </div>
-            <div className="p-1.5">
-              <p className="truncate text-[10px] font-medium text-foreground">{p.name}</p>
-              <p className="text-[11px] font-semibold text-primary">{mxn(p.price)}</p>
-            </div>
-          </div>
-        ))}
+      {/* Scrollable, fully populated — the preview reads like a real catalog you
+          can browse, not a 4-item teaser. Scrollbar hidden for the device look. */}
+      <div className="flex-1 overflow-y-auto p-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Keyed by catalog so the cascade replays when the brand/theme switches. */}
+        <MockGrid key={catalog.id} products={products} />
       </div>
-      <div className="px-2.5 pb-3">
-        <div className="flex h-9 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-primary-foreground">
+      {/* Gradient lifts the button off the scrolling photos — layering + distance
+          so the CTA reads as a fixed bar, not floating on the imagery. */}
+      <div className="relative z-10 -mt-6 bg-gradient-to-t from-background via-background to-transparent px-2.5 pb-3 pt-7">
+        <div className="flex h-9 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-primary-foreground shadow-sm">
           {t.phone.reserve}
         </div>
+      </div>
+    </div>
+  )
+}
+
+function MockGrid({ products }) {
+  const [start, setStart] = useState(false)
+
+  // Kick the cascade shortly after the screen appears (fresh mount → starts false).
+  useEffect(() => {
+    const id = setTimeout(() => setStart(true), 280)
+    return () => clearTimeout(id)
+  }, [])
+
+  return (
+    <div className="columns-2 gap-2">
+      {products.map((p) => (
+        <MockCard key={p.id} product={p} start={start} />
+      ))}
+    </div>
+  )
+}
+
+function MockCard({ product, start }) {
+  const [ref, delay] = useCascadeReveal(start, { perPx: 0.6, max: 480 })
+  return (
+    <div ref={ref} className="relative mb-2 break-inside-avoid overflow-hidden rounded-lg">
+      <ProductImage src={product.images[0]} alt={product.name} aspect={product.aspect} />
+      <div
+        style={{ transitionDelay: `${delay}ms` }}
+        className={cn(
+          'pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-1.5 pt-6',
+          'opacity-0 motion-safe:translate-y-1 motion-safe:transition-[opacity,transform] motion-safe:duration-500 motion-safe:ease-out',
+          start && 'opacity-100 motion-safe:translate-y-0'
+        )}
+        aria-hidden={!start}
+      >
+        <p className="truncate text-[9px] font-medium text-white/90">{product.name}</p>
+        <p className="text-[10px] font-semibold text-white">{mxn(product.price)}</p>
       </div>
     </div>
   )

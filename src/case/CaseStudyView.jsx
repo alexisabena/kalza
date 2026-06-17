@@ -39,7 +39,7 @@ export function CaseStudyView() {
     <div className="mx-auto max-w-6xl px-6">
       <div className="grid gap-12 lg:grid-cols-[1fr_320px]">
         {/* Narrative */}
-        <div ref={ref} className="min-w-0 py-10">
+        <div ref={ref} className="min-w-0 py-16 lg:py-24">
           <Beat screen="catalog" first>
             <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-primary">
               {t.hero.eyebrow}
@@ -130,8 +130,8 @@ export function CaseStudyView() {
         </div>
       </div>
 
-      <footer className="mt-8 border-t">
-        <div className="flex flex-col items-start justify-between gap-6 py-12 sm:flex-row sm:items-center">
+      <footer className="mt-16 border-t">
+        <div className="flex flex-col items-start justify-between gap-6 py-16 sm:flex-row sm:items-center">
           <div>
             <p className="text-lg font-bold text-primary">Kalza</p>
             <p className="text-sm text-muted-foreground">{t.footer.brandLine}</p>
@@ -149,7 +149,7 @@ export function CaseStudyView() {
 
 function Beat({ screen, eyebrow, title, first, children }) {
   return (
-    <section data-screen={screen} className={cn('max-w-2xl', first ? 'pb-16' : 'py-16')}>
+    <section data-screen={screen} className={cn('max-w-2xl', first ? 'pb-24 sm:pb-36' : 'py-20 sm:py-28')}>
       {eyebrow && (
         <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-primary">{eyebrow}</p>
       )}

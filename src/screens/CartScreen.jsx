@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { X, ShoppingBag } from 'lucide-react'
 import { useCartStore } from '@/stores/cartStore'
@@ -7,6 +8,7 @@ import { getProduct } from '@/data/products'
 import { catalogs } from '@/data/catalogs'
 import { colors } from '@/data/colors'
 import { ProductImage } from '@/components/ProductImage'
+import { SuccessCheck } from '@/components/SuccessCheck'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -53,9 +55,11 @@ export function CartScreen() {
   const place = useOrdersStore((s) => s.place)
   const buyerClientId = useSessionStore((s) => s.buyerClientId)
   const navigate = useNavigate()
+  const [placed, setPlaced] = useState(false)
 
   // Step 1 of the double confirmation: the clienta confirms her intent.
   // The vendedora confirms on her side before the order is real.
+  // The success burst makes apartar feel earned before we move on (buyer motion).
   const handlePlace = () => {
     const catalogIds = [...new Set(items.map((i) => getProduct(i.productId)?.catalogId))]
     place({
@@ -63,8 +67,12 @@ export function CartScreen() {
       items: items.map(({ productId, colorId, size, qty }) => ({ productId, colorId, size, qty })),
       catalogIds,
     })
-    clear()
-    navigate('/pedidos')
+    setPlaced(true)
+    // Hold on the confirmation, then clear + move to her orders.
+    setTimeout(() => {
+      clear()
+      navigate('/pedidos')
+    }, 1100)
   }
 
   if (items.length === 0) {
@@ -97,6 +105,16 @@ export function CartScreen() {
 
   return (
     <div className="flex flex-col gap-6 p-4 pb-10">
+      {placed && (
+        <div className="fixed inset-0 z-50 mx-auto flex max-w-md flex-col items-center justify-center gap-3 bg-background/90 backdrop-blur-sm">
+          <div className="relative flex items-center justify-center">
+            <span className="absolute size-16 rounded-full bg-success/30 success-burst" aria-hidden="true" />
+            <SuccessCheck size={64} />
+          </div>
+          <p className="text-sm font-semibold text-success">Pedido apartado</p>
+        </div>
+      )}
+
       {/* Selections grouped by catalog */}
       {groups.map(({ catalog, lines }) => (
         <section key={catalog.id} aria-label={catalog.brand}>

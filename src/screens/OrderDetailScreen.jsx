@@ -9,6 +9,7 @@ import { getProduct } from '@/data/products'
 import { colors } from '@/data/colors'
 import { ProductImage } from '@/components/ProductImage'
 import { StatusChip } from '@/components/StatusChip'
+import { OrderProgress } from '@/components/OrderProgress'
 import { Button } from '@/components/ui/button'
 
 const mxn = (n) => `$${n.toLocaleString('es-MX')}`
@@ -24,61 +25,6 @@ const formatDeadline = (iso) =>
     hour: '2-digit',
     minute: '2-digit',
   })
-
-// Buyer-facing progress indicator — no chat, just where her pedido stands.
-const steps = [
-  { id: 'pedido', label: 'Pedido realizado' },
-  { id: 'apartado', label: 'Apartado para ti' },
-  { id: 'pagado', label: 'Pagado' },
-  { id: 'recolectado', label: 'Recolectado por tu vendedora' },
-  { id: 'entregado', label: 'Entregado' },
-]
-
-function ProgressStepper({ status }) {
-  if (status === 'vencido') {
-    return (
-      <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
-        El plazo de pago venció y el apartado se liberó. Puedes volver a pedirlo
-        desde el catálogo.
-      </p>
-    )
-  }
-  const reached = steps.findIndex((s) => s.id === status)
-  return (
-    <ol className="flex flex-col gap-0" aria-label="Progreso del pedido">
-      {steps.map((step, i) => {
-        const done = i <= reached
-        return (
-          <li key={step.id} className="flex items-start gap-3">
-            <div className="flex flex-col items-center">
-              <span
-                className={cn(
-                  'flex size-6 items-center justify-center rounded-full border-2 text-xs',
-                  done
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background text-muted-foreground'
-                )}
-              >
-                {done ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
-              </span>
-              {i < steps.length - 1 && (
-                <span className={cn('h-5 w-0.5', i < reached ? 'bg-primary' : 'bg-border')} />
-              )}
-            </div>
-            <span
-              className={cn(
-                'pt-0.5 text-sm',
-                done ? 'font-medium text-foreground' : 'text-muted-foreground'
-              )}
-            >
-              {step.label}
-            </span>
-          </li>
-        )
-      })}
-    </ol>
-  )
-}
 
 export function OrderDetailScreen() {
   const { id } = useParams()
@@ -158,7 +104,7 @@ export function OrderDetailScreen() {
         </div>
       )}
 
-      {isBuyer && <ProgressStepper status={status} />}
+      {isBuyer && <OrderProgress order={order} variant="buyer" />}
 
       <section aria-label="Artículos">
         <ul className="divide-y">

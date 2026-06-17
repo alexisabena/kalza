@@ -3,6 +3,9 @@ import { cn } from '@/lib/utils'
 import { mxn } from '@/data/pricing'
 import { useLang } from '@/case/LanguageContext'
 import { CatalogScreen } from '@/case/PhoneScreens'
+import { SuccessCheck } from '@/components/SuccessCheck'
+
+export { SuccessCheck }
 
 // A tap/press indicator over a control.
 export function TapPulse({ className }) {
@@ -11,23 +14,6 @@ export function TapPulse({ className }) {
       <span className="absolute size-10 rounded-full bg-primary/40 case-ripple" />
       <span className="size-5 rounded-full border-2 border-primary bg-primary/30 case-pop" />
     </div>
-  )
-}
-
-export function SuccessCheck({ size = 44 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 44 44" className="case-pop" role="img" aria-label="ok">
-      <circle cx="22" cy="22" r="20" fill="var(--success)" />
-      <path
-        d="M13 22.5 L19.5 29 L31 16.5"
-        fill="none"
-        stroke="var(--success-foreground)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="case-check-path"
-      />
-    </svg>
   )
 }
 

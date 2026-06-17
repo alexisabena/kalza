@@ -13,17 +13,37 @@ import { ProductImage } from '@/components/ProductImage'
 import { Lightbox } from '@/components/Lightbox'
 import { Button } from '@/components/ui/button'
 
-// Full-width carousel with scroll-snap. Slides whose image file doesn't exist
-// yet are dropped; if none exist a single placeholder slide remains.
-// Tapping a photo opens the lightbox on that photo.
+const AUTOPLAY_MS = 3500
+
+// Full-width carousel with scroll-snap. Auto-advances on a timer and loops; the
+// first manual swipe/scroll stops autoplay for good (the viewer took over). A
+// progress bar tracks the timer per slide. Tapping a photo opens the lightbox.
+// Slides whose image file doesn't exist yet are dropped.
 function Carousel({ images, alt }) {
   const [failed, setFailed] = useState(() => new Set())
   const [active, setActive] = useState(0)
+  const [auto, setAuto] = useState(true)
   const [lightboxAt, setLightboxAt] = useState(null)
+  const trackRef = useRef(null)
   const slides = images.filter((src) => !failed.has(src))
 
-  const markFailed = (src) =>
-    setFailed((prev) => new Set(prev).add(src))
+  const reduced =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  // Advance + loop while autoplay is on. A user gesture (below) turns it off.
+  useEffect(() => {
+    if (!auto || reduced || slides.length < 2) return
+    const id = setInterval(() => {
+      const t = trackRef.current
+      if (!t) return
+      const next = (Math.round(t.scrollLeft / t.clientWidth) + 1) % slides.length
+      t.scrollTo({ left: next * t.clientWidth, behavior: 'smooth' })
+    }, AUTOPLAY_MS)
+    return () => clearInterval(id)
+  }, [auto, reduced, slides.length])
+
+  const markFailed = (src) => setFailed((prev) => new Set(prev).add(src))
 
   const handleScroll = (e) => {
     const { scrollLeft, clientWidth } = e.currentTarget
@@ -37,7 +57,10 @@ function Carousel({ images, alt }) {
   return (
     <div className="relative">
       <div
+        ref={trackRef}
         onScroll={handleScroll}
+        onPointerDown={() => setAuto(false)}
+        onWheel={() => setAuto(false)}
         className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none]"
       >
         {slides.map((src, i) => (
@@ -57,6 +80,19 @@ function Carousel({ images, alt }) {
           </button>
         ))}
       </div>
+
+      {/* Autoplay progress — restarts per slide (keyed by active), hides once the
+          viewer takes over. */}
+      {slides.length > 1 && auto && !reduced && (
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-white/20">
+          <div
+            key={active}
+            className="carousel-progress h-full bg-white/80"
+            style={{ animationDuration: `${AUTOPLAY_MS}ms` }}
+          />
+        </div>
+      )}
+
       {lightboxAt !== null && (
         <Lightbox
           images={slides}
@@ -65,14 +101,15 @@ function Carousel({ images, alt }) {
           onClose={() => setLightboxAt(null)}
         />
       )}
+
       {slides.length > 1 && (
         <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
           {slides.map((src, i) => (
             <span
               key={src}
               className={cn(
-                'size-1.5 rounded-full bg-white/50',
-                i === active && 'bg-white'
+                'size-1.5 rounded-full bg-white/50 transition-all',
+                i === active && 'w-3 bg-white'
               )}
             />
           ))}
@@ -92,6 +129,8 @@ export function ProductDetailScreen() {
   const [colorId, setColorId] = useState(product?.colorIds[0])
   const [size, setSize] = useState(null)
   const [added, setAdded] = useState(false)
+  // Increments on each add — re-keys the CTA so the bump animation replays.
+  const [bump, setBump] = useState(0)
   const addedTimer = useRef()
 
   useEffect(() => () => clearTimeout(addedTimer.current), [])
@@ -103,6 +142,7 @@ export function ProductDetailScreen() {
       .getState()
       .advance(useSessionStore.getState().buyerClientId, product.catalogId, 'carrito')
     setAdded(true)
+    setBump((n) => n + 1)
     clearTimeout(addedTimer.current)
     addedTimer.current = setTimeout(() => setAdded(false), 1500)
   }
@@ -200,7 +240,12 @@ export function ProductDetailScreen() {
             <Share2 aria-hidden="true" /> Compartir con clienta
           </Button>
         ) : (
-          <Button className="w-full" disabled={!size} onClick={handleAdd}>
+          <Button
+            key={bump}
+            className={cn('w-full', bump > 0 && 'add-bump')}
+            disabled={!size}
+            onClick={handleAdd}
+          >
             {added ? (
               <>
                 <Check aria-hidden="true" /> Agregado al carrito

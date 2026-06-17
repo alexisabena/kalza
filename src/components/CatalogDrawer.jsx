@@ -32,12 +32,17 @@ export function CatalogDrawer({ open, onClose }) {
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
       />
+      {/* Centered max-w-md wrapper so the drawer slides from the phone column's
+          left edge on desktop, not the viewport edge (forced mobile frame).
+          overflow-hidden clips the closed drawer to the column so it doesn't
+          peek into the desktop gutter. */}
+      <div className="pointer-events-none fixed inset-y-0 left-0 right-0 z-40 mx-auto max-w-md overflow-hidden">
       <aside
         role="dialog"
         aria-modal="true"
         aria-label="Cambiar catálogo"
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-72 max-w-[85vw] flex-col bg-background shadow-xl motion-safe:transition-transform motion-safe:duration-250 motion-safe:ease-out',
+          'pointer-events-auto absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-background shadow-xl motion-safe:transition-transform motion-safe:duration-250 motion-safe:ease-out',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -119,6 +124,7 @@ export function CatalogDrawer({ open, onClose }) {
           </Link>
         </div>
       </aside>
+      </div>
     </>
   )
 }

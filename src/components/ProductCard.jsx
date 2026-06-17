@@ -1,49 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { ProductImage } from '@/components/ProductImage'
+import { usePriceReveal } from '@/lib/usePriceReveal'
 
-// Reveal once the card has stayed on screen for `ms`. Fast scrolling cancels
-// the timer before it fires, so nothing animates during a fling; once revealed,
-// a card stays revealed and never re-animates.
-function useDwellReveal(ms = 3000) {
-  const ref = useRef(null)
-  const [revealed, setRevealed] = useState(false)
-
-  useEffect(() => {
-    if (revealed) return
-    const el = ref.current
-    if (!el) return
-    let timer
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          timer = setTimeout(() => setRevealed(true), ms)
-        } else {
-          clearTimeout(timer)
-        }
-      },
-      { threshold: 0.6 }
-    )
-    observer.observe(el)
-    return () => {
-      clearTimeout(timer)
-      observer.disconnect()
-    }
-  }, [revealed, ms])
-
-  return [ref, revealed]
-}
-
+// One masonry card. The name + price plate lives inside the image and reveals
+// once the card has dwelled on screen — see usePriceReveal. Opacity/transform
+// only, so it's cheap to composite.
 export function ProductCard({ product }) {
-  const [ref, revealed] = useDwellReveal()
+  const [ref, revealed] = usePriceReveal()
 
   return (
     <article ref={ref} className="relative mb-2 break-inside-avoid overflow-hidden rounded-lg">
       <Link to={`/producto/${product.id}`} className="block">
         <ProductImage src={product.images[0]} alt={product.name} aspect={product.aspect} />
-        {/* Name + price live inside the image, revealed after a 3s dwell.
-            Opacity/transform only — cheap to composite, no layout work. */}
         <div
           className={cn(
             'pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent p-3 pt-10',

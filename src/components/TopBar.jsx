@@ -17,7 +17,11 @@ function CartButton() {
     >
       <ShoppingBag className="size-5" aria-hidden="true" />
       {count > 0 && (
-        <span className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+        // key={count} re-mounts the badge each change so it pops on add (subtle spring).
+        <span
+          key={count}
+          className="badge-pop absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground"
+        >
           {count > 9 ? '9+' : count}
         </span>
       )}
@@ -46,7 +50,7 @@ export function TopBar() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-20 grid h-14 grid-cols-[3rem_1fr_3rem] items-center border-b bg-background px-1">
+      <header className="fixed inset-x-0 top-0 z-20 mx-auto grid h-14 max-w-md grid-cols-[3rem_1fr_3rem] items-center border-b bg-background px-1">
         {showBack ? (
           <button
             type="button"

@@ -3,3 +3,5 @@
 @import './theme-base.css';
 @import './themes/brand-elegant.css';
 @import './themes/brand-kids.css';
+/* Motion tokens + shared keyframes — global so app + portfolio share one source. */
+@import './motion.css';
