@@ -3,16 +3,18 @@ import { NavLink } from 'react-router-dom'
 import { BookOpen, House, Package, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useT } from '@/i18n'
 
 // Which tabs each profile sees. The buyer's home is the catalog; the
 // retailer's home is her dashboard of shared catalogs. The wholesaler is not a
 // mobile profile — his surface is the desktop back-office at /admin.
+// `label` is an i18n key resolved at render.
 const tabs = [
-  { to: '/app', label: 'Catálogo', icon: BookOpen, roles: ['buyer'] },
-  { to: '/app', label: 'Inicio', icon: House, roles: ['retailer'] },
-  { to: '/catalogo', label: 'Catálogo', icon: BookOpen, roles: ['retailer'] },
-  { to: '/pedidos', label: 'Pedidos', icon: Package, roles: ['buyer', 'retailer'] },
-  { to: '/ingresos', label: 'Ingresos', icon: TrendingUp, roles: ['retailer'] },
+  { to: '/app', label: 'catalogo', icon: BookOpen, roles: ['buyer'] },
+  { to: '/app', label: 'inicio', icon: House, roles: ['retailer'] },
+  { to: '/catalogo', label: 'catalogo', icon: BookOpen, roles: ['retailer'] },
+  { to: '/pedidos', label: 'pedidos', icon: Package, roles: ['buyer', 'retailer'] },
+  { to: '/ingresos', label: 'ingresos', icon: TrendingUp, roles: ['retailer'] },
 ]
 
 // Hide when scrolling down, reappear on scroll up — images take priority.
@@ -38,7 +40,8 @@ function useHideOnScrollDown() {
 export function BottomNav() {
   const role = useSessionStore((s) => s.role)
   const hidden = useHideOnScrollDown()
-  const visibleTabs = tabs.filter((t) => t.roles.includes(role))
+  const t = useT()
+  const visibleTabs = tabs.filter((tab) => tab.roles.includes(role))
 
   return (
     <nav
@@ -61,7 +64,7 @@ export function BottomNav() {
             }
           >
             <Icon className="size-5" aria-hidden="true" />
-            <span className="text-xs font-medium">{label}</span>
+            <span className="text-xs font-medium">{t.nav[label]}</span>
           </NavLink>
         ))}
       </div>

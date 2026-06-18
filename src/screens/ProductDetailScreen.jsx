@@ -11,6 +11,8 @@ import { sizeRuns } from '@/data/sizes'
 import { getStock } from '@/data/inventory'
 import { ProductImage } from '@/components/ProductImage'
 import { Lightbox } from '@/components/Lightbox'
+import { useDragScroll } from '@/lib/useDragScroll'
+import { useLoopCarousel } from '@/lib/useLoopCarousel'
 import { Button } from '@/components/ui/button'
 
 const AUTOPLAY_MS = 3500
@@ -21,34 +23,25 @@ const AUTOPLAY_MS = 3500
 // Slides whose image file doesn't exist yet are dropped.
 function Carousel({ images, alt }) {
   const [failed, setFailed] = useState(() => new Set())
-  const [active, setActive] = useState(0)
   const [auto, setAuto] = useState(true)
   const [lightboxAt, setLightboxAt] = useState(null)
-  const trackRef = useRef(null)
   const slides = images.filter((src) => !failed.has(src))
+  const { ref: trackRef, display, active, onScroll, next } = useLoopCarousel(slides)
+  useDragScroll(trackRef)
 
   const reduced =
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  // Advance + loop while autoplay is on. A user gesture (below) turns it off.
+  // Advance while autoplay is on (looping handled by useLoopCarousel). A user
+  // gesture (below) turns it off.
   useEffect(() => {
     if (!auto || reduced || slides.length < 2) return
-    const id = setInterval(() => {
-      const t = trackRef.current
-      if (!t) return
-      const next = (Math.round(t.scrollLeft / t.clientWidth) + 1) % slides.length
-      t.scrollTo({ left: next * t.clientWidth, behavior: 'smooth' })
-    }, AUTOPLAY_MS)
+    const id = setInterval(next, AUTOPLAY_MS)
     return () => clearInterval(id)
-  }, [auto, reduced, slides.length])
+  }, [auto, reduced, slides.length, next])
 
   const markFailed = (src) => setFailed((prev) => new Set(prev).add(src))
-
-  const handleScroll = (e) => {
-    const { scrollLeft, clientWidth } = e.currentTarget
-    setActive(Math.round(scrollLeft / clientWidth))
-  }
 
   if (slides.length === 0) {
     return <ProductImage src="" alt={alt} className="aspect-[4/5]" />
@@ -58,24 +51,25 @@ function Carousel({ images, alt }) {
     <div className="relative">
       <div
         ref={trackRef}
-        onScroll={handleScroll}
+        onScroll={onScroll}
         onPointerDown={() => setAuto(false)}
         onWheel={() => setAuto(false)}
-        className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none]"
+        className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
       >
-        {slides.map((src, i) => (
+        {display.map((src, i) => (
           <button
-            key={src}
+            key={i}
             type="button"
-            onClick={() => setLightboxAt(i)}
-            aria-label={`Ampliar foto ${i + 1} de ${alt}`}
+            onClick={() => setLightboxAt(active)}
+            aria-label={`Ampliar foto de ${alt}`}
             className="w-full shrink-0 snap-center cursor-zoom-in"
           >
             <img
               src={src}
               alt={`${alt} — foto ${i + 1}`}
               onError={() => markFailed(src)}
-              className="aspect-[4/5] w-full bg-muted object-cover"
+              draggable={false}
+              className="aspect-[4/5] w-full select-none bg-muted object-cover"
             />
           </button>
         ))}

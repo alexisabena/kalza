@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useDragScroll } from '@/lib/useDragScroll'
+import { useLoopCarousel } from '@/lib/useLoopCarousel'
 
 // A closer view of the product photos, bound to the phone frame (centered
 // max-w-md), not the whole desktop. Swipe between photos; the backdrop is a
@@ -9,10 +11,10 @@ import { cn } from '@/lib/utils'
 // view, not an accidental full-screen zoom. Double-tap the photo (or X / Escape)
 // to leave. A one-time swipe nudge invites the gesture.
 export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
-  const [active, setActive] = useState(initialIndex)
+  const { ref: trackRef, display, active, onScroll } = useLoopCarousel(images, initialIndex)
   const [hint, setHint] = useState(images.length > 1)
-  const trackRef = useRef(null)
   const lastTap = useRef(0)
+  useDragScroll(trackRef)
 
   // Lock page scroll behind the lightbox
   useEffect(() => {
@@ -31,28 +33,13 @@ export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  // Open on the photo that was tapped
-  useEffect(() => {
-    const track = trackRef.current
-    if (track) track.scrollLeft = initialIndex * track.clientWidth
-  }, [initialIndex])
-
-  // Retire the nudge after a moment even if the viewer doesn't move.
+  // Retire the nudge after a moment even if the viewer doesn't move (it also
+  // clears on first pointer-down, wired on the track below).
   useEffect(() => {
     if (!hint) return
     const id = setTimeout(() => setHint(false), 4200)
     return () => clearTimeout(id)
   }, [hint])
-
-  const handleScroll = (e) => {
-    const { scrollLeft, clientWidth } = e.currentTarget
-    const i = Math.round(scrollLeft / clientWidth)
-    // Only a real slide change retires the nudge — not the initial positioning scroll.
-    if (i !== active) {
-      setActive(i)
-      if (hint) setHint(false)
-    }
-  }
 
   // Double-tap the photo to leave the closer view.
   const handleTap = () => {
@@ -78,7 +65,9 @@ export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
         style={{ backgroundImage: `url(${images[active]})` }}
         className="absolute inset-0 scale-125 bg-cover bg-center blur-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500"
       />
-      <div aria-hidden="true" className="absolute inset-0 bg-black/55" />
+      <div aria-hidden="true" className="absolute inset-0 bg-black/45" />
+      {/* Keep the dots legible against the lighter backdrop. */}
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
 
       <button
         type="button"
@@ -91,20 +80,21 @@ export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
 
       <div
         ref={trackRef}
-        onScroll={handleScroll}
+        onScroll={onScroll}
         onPointerDown={() => hint && setHint(false)}
         className="relative flex h-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
       >
-        {images.map((src, i) => (
+        {display.map((src, i) => (
           <div
-            key={src}
+            key={i}
             className="flex h-full w-full shrink-0 snap-center items-center justify-center p-5"
           >
             <img
               src={src}
               alt={`${alt} — foto ${i + 1}`}
               onClick={handleTap}
-              className="max-h-full max-w-full rounded-[var(--radius)] object-contain shadow-2xl"
+              draggable={false}
+              className="max-h-full max-w-full select-none rounded-[var(--radius)] object-contain shadow-2xl"
             />
           </div>
         ))}

@@ -5,14 +5,16 @@ import { useCatalogStore } from '@/stores/catalogStore'
 import { useCartStore, selectCount } from '@/stores/cartStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { CatalogDrawer } from '@/components/CatalogDrawer'
+import { useT } from '@/i18n'
 
 function CartButton() {
   const count = useCartStore(selectCount)
+  const t = useT()
 
   return (
     <Link
       to="/carrito"
-      aria-label={`Mi carrito, ${count} artículos`}
+      aria-label={t.topbar.cartAria(count)}
       className="relative flex size-12 items-center justify-center text-foreground"
     >
       <ShoppingBag className="size-5" aria-hidden="true" />
@@ -35,6 +37,7 @@ export function TopBar() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const t = useT()
 
   // Inside a product, the cart or the share flow the catalog can't change —
   // back instead of menu
@@ -55,7 +58,7 @@ export function TopBar() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            aria-label="Regresar"
+            aria-label={t.topbar.back}
             className="flex size-12 items-center justify-center text-foreground"
           >
             <ChevronLeft className="size-5" aria-hidden="true" />
@@ -64,7 +67,7 @@ export function TopBar() {
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
-            aria-label="Abrir menú"
+            aria-label={t.topbar.menu}
             className="flex size-12 items-center justify-center text-foreground"
           >
             <Menu className="size-5" aria-hidden="true" />
@@ -73,7 +76,7 @@ export function TopBar() {
 
         {/* aria-live announces the rebrand to screen readers on catalog switch */}
         <span aria-live="polite" className="truncate text-center text-lg font-bold text-primary">
-          {isCart ? 'Mi carrito' : isShare ? 'Compartir' : activeCatalog.brand}
+          {isCart ? t.topbar.cart : isShare ? t.topbar.share : activeCatalog.brand}
         </span>
 
         {showCart ? <CartButton /> : <span aria-hidden="true" />}

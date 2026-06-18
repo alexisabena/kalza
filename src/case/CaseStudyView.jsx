@@ -9,6 +9,9 @@ import { PhoneFrame } from '@/case/PhoneScreens'
 import { useScrollScreen } from '@/case/useScrollScreen'
 import { QrAppModal } from '@/case/QrAppModal'
 
+const AUTO_MS = 4200 // unhurried auto-cycle between brands
+const MANUAL_MS = 10000 // a clicked brand lingers this long before the loop resumes
+
 // Font + radius per brand are design facts, not translated copy.
 const THEME_META = {
   'cat-001': { font: 'Plus Jakarta Sans', radius: '0.2rem' },
@@ -24,13 +27,24 @@ export function CaseStudyView() {
   const screen = useScrollScreen(ref, 'catalog')
   const [qrOpen, setQrOpen] = useState(false)
 
-  // During the theming section, cycle the phone through the brands.
+  // During the theming section, cycle the phone through the brands — unhurried,
+  // so each rebrand can land. Clicking a card jumps to it and lingers (MANUAL_MS)
+  // before the loop resumes; one timer handles both, rescheduled per current dwell.
   const [themeIdx, setThemeIdx] = useState(0)
+  const [dwell, setDwell] = useState(AUTO_MS)
   useEffect(() => {
     if (screen !== 'theme') return
-    const id = setInterval(() => setThemeIdx((i) => (i + 1) % catalogs.length), 1700)
-    return () => clearInterval(id)
-  }, [screen])
+    const id = setTimeout(() => {
+      setThemeIdx((i) => (i + 1) % catalogs.length)
+      setDwell(AUTO_MS)
+    }, dwell)
+    return () => clearTimeout(id)
+  }, [screen, themeIdx, dwell])
+
+  const pickTheme = (i) => {
+    setThemeIdx(i)
+    setDwell(MANUAL_MS)
+  }
 
   const catalog = screen === 'theme' ? catalogs[themeIdx] : catalogs[0]
   const phoneScreen = screen === 'theme' ? 'catalog' : screen
@@ -79,8 +93,18 @@ export function CaseStudyView() {
           <Beat screen="theme" eyebrow={t.theming.eyebrow} title={t.theming.title}>
             <p className="mb-6">{t.theming.body}</p>
             <div className="grid gap-4 sm:grid-cols-3">
-              {catalogs.map((c) => (
-                <div key={c.id} data-theme={c.themeId || undefined} className="font-sans rounded-xl border p-4">
+              {catalogs.map((c, i) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  data-theme={c.themeId || undefined}
+                  onClick={() => pickTheme(i)}
+                  aria-pressed={themeIdx === i}
+                  className={cn(
+                    'font-sans relative overflow-hidden rounded-xl border p-4 text-left transition-shadow motion-safe:duration-500',
+                    themeIdx === i ? 'border-primary ring-1 ring-primary' : 'hover:border-primary/40'
+                  )}
+                >
                   <div className="mb-2 flex items-center gap-2.5">
                     <span className="size-7 rounded-lg bg-primary" aria-hidden="true" />
                     <span className="font-bold text-primary">{c.brand}</span>
@@ -90,7 +114,16 @@ export function CaseStudyView() {
                     <div className="flex justify-between"><dt>{t.theming.fontLabel}</dt><dd className="font-medium text-foreground">{THEME_META[c.id].font}</dd></div>
                     <div className="flex justify-between"><dt>{t.theming.radiusLabel}</dt><dd className="font-medium text-foreground">{THEME_META[c.id].radius}</dd></div>
                   </dl>
-                </div>
+                  {/* Timer line — how long this brand stays on the phone. */}
+                  {themeIdx === i && screen === 'theme' && (
+                    <span
+                      key={`${themeIdx}-${dwell}`}
+                      aria-hidden="true"
+                      className="carousel-progress absolute inset-x-0 bottom-0 h-0.5 bg-primary"
+                      style={{ animationDuration: `${dwell}ms` }}
+                    />
+                  )}
+                </button>
               ))}
             </div>
           </Beat>
@@ -124,7 +157,7 @@ export function CaseStudyView() {
               key={`${catalog.id}-${phoneScreen}`}
               catalog={catalog}
               screen={phoneScreen}
-              className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500"
+              className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-700 motion-safe:ease-out"
             />
           </div>
         </div>

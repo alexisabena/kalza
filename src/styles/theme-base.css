@@ -19,6 +19,14 @@
   --popover-foreground: oklch(0.2178 0 0);
   --primary: oklch(0.5740 0.1428 51.7230);
   --primary-foreground: oklch(0.9851 0 0);
+
+  /* Absolute brand accents — each catalog's own primary, NOT overridden by
+     [data-theme]. Lets one screen (e.g. the catalog drawer) hint every brand's
+     colour at once regardless of the active theme. Keep in sync with the
+     --primary of each theme. */
+  --brand-cat-001: oklch(0.5740 0.1428 51.7230); /* Kalza — amber */
+  --brand-cat-002: oklch(0.3500 0.0800 260); /* Élite — dark blue */
+  --brand-cat-003: oklch(0.6200 0.1900 260); /* Pasos — bright blue */
   --secondary: oklch(0.9702 0 0);
   --secondary-foreground: oklch(0.2178 0 0);
   --muted: oklch(0.9702 0 0);
