@@ -9,6 +9,7 @@ export const es = {
     back: 'Regresar',
     menu: 'Abrir menú',
     settings: 'Ajustes',
+    checkout: 'Pago',
     cartAria: (n) => `Mi carrito, ${n} artículos`,
   },
   drawer: {
@@ -71,5 +72,31 @@ export const es = {
     tarjeta: 'Pago con tarjeta',
     oxxo: 'Efectivo en OXXO — ficha digital',
     atrato: 'A meses, pagos quincenales',
+  },
+  checkout: {
+    title: 'Pago',
+    summary: 'Resumen del pedido',
+    total: 'Total',
+    choose: 'Elige cómo pagar',
+    payNow: 'Pagar',
+    roadmapNote:
+      'Visión etapa 3 del proyecto (la app de 2019 era solo efectivo) — pasarelas ilustrativas.',
+    success: '¡Pago confirmado!',
+    successNote: 'Tu pedido continúa su proceso.',
+    viewOrder: 'Ver mi pedido',
+    expired: 'El plazo de este apartado venció y el stock se liberó.',
+    // OXXO Pay — digital cash voucher (ficha)
+    oxxoTitle: 'Ficha de pago OXXO Pay',
+    oxxoRef: 'Referencia',
+    oxxoAmount: 'Monto a pagar',
+    oxxoNote:
+      'Presenta esta ficha en cualquier OXXO y paga en efectivo. Con OXXO Pay el pago se refleja al momento.',
+    oxxoPaid: 'Simular pago en OXXO',
+    // a trato — BNPL quincenal
+    atratoTitle: 'Plan a trato',
+    atratoNote: 'Pagos quincenales. a trato cubre el total hoy y tú pagas en parcialidades.',
+    atratoEvery: 'cada 15 días',
+    atratoAccept: 'Aceptar plan',
+    installment: (n) => `Parcialidad ${n}`,
   },
 }

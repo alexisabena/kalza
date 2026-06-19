@@ -9,6 +9,7 @@ export const en = {
     back: 'Back',
     menu: 'Open menu',
     settings: 'Settings',
+    checkout: 'Checkout',
     cartAria: (n) => `My cart, ${n} items`,
   },
   drawer: {
@@ -64,5 +65,29 @@ export const en = {
     tarjeta: 'Card payment',
     oxxo: 'Cash at OXXO — digital voucher',
     atrato: 'Pay later, fortnightly',
+  },
+  checkout: {
+    title: 'Checkout',
+    summary: 'Order summary',
+    total: 'Total',
+    choose: 'Choose how to pay',
+    payNow: 'Pay',
+    roadmapNote:
+      "Stage-3 roadmap vision (the 2019 app was cash-only) — illustrative gateways.",
+    success: 'Payment confirmed!',
+    successNote: 'Your order continues its process.',
+    viewOrder: 'View my order',
+    expired: 'This reservation’s window expired and the stock was released.',
+    oxxoTitle: 'OXXO Pay voucher',
+    oxxoRef: 'Reference',
+    oxxoAmount: 'Amount to pay',
+    oxxoNote:
+      'Present this voucher at any OXXO and pay in cash. With OXXO Pay the payment reflects in real time.',
+    oxxoPaid: 'Simulate OXXO payment',
+    atratoTitle: 'a trato plan',
+    atratoNote: 'Fortnightly payments. a trato covers the total today and you pay in installments.',
+    atratoEvery: 'every 15 days',
+    atratoAccept: 'Accept plan',
+    installment: (n) => `Installment ${n}`,
   },
 }
