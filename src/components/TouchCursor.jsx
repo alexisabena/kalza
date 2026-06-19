@@ -4,9 +4,11 @@ import { cn } from '@/lib/utils'
 // Desktop-only touch pointer. Emulates Chrome devtools' responsive/touch-mode
 // cursor — a soft dark fingertip circle — so reviewing the phone on a desktop
 // reads as a touch surface (and the lightbox can nudge swipe gestures). The
-// column hides the native cursor on lg; this stands in for it. Position + opacity
-// are written imperatively (no re-render per move); only the press state is React.
-// Hidden below lg and on real touch input (coarse pointers don't move it).
+// column hides the native cursor on the desktop frame; this stands in for it.
+// Position + opacity are written imperatively (no re-render per move); only the
+// press state is React. Gated on the `desk` device class (not raw width) so it
+// never appears on a real tablet — a coarse-pointer device has its own touch and
+// shouldn't get a fake mouse cursor (responsive-spec §4).
 export function TouchCursor() {
   const ref = useRef(null)
   const [pressed, setPressed] = useState(false)
@@ -53,7 +55,7 @@ export function TouchCursor() {
       aria-hidden="true"
       style={{ opacity: 0 }}
       className={cn(
-        'pointer-events-none fixed left-0 top-0 z-[100] hidden size-9 rounded-full lg:block',
+        'pointer-events-none fixed left-0 top-0 z-[100] hidden size-9 rounded-full desk:block',
         'border border-white/50 bg-neutral-900/35 shadow-md backdrop-blur-[1px]',
         'motion-safe:transition-[width,height,background-color] motion-safe:duration-150',
         pressed && 'size-7 bg-neutral-900/60'

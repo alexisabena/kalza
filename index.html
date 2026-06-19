@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kalza</title>
+    <script>
+      // Seed data-device before first paint so the §F desktop frame / tablet
+      // layouts never flash the wrong class on load. Mirrors computeDeviceClass()
+      // in src/lib/useDeviceClass.js — keep the queries in sync.
+      ;(function () {
+        var m = function (q) {
+          return window.matchMedia(q).matches
+        }
+        var c = m('(min-width: 1024px) and (pointer: fine)')
+          ? 'desk'
+          : m('(min-width: 1024px) and (orientation: landscape) and (pointer: coarse)')
+            ? 'tablet-l'
+            : m('(min-width: 768px) and (orientation: portrait) and (pointer: coarse)')
+              ? 'tablet-p'
+              : 'phone'
+        document.documentElement.setAttribute('data-device', c)
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

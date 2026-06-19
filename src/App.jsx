@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
 import { TouchCursor } from '@/components/TouchCursor'
+import { useDeviceClass } from '@/lib/useDeviceClass'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useT } from '@/i18n'
@@ -42,6 +43,11 @@ function MobileApp() {
   const activeCatalog = useCatalogStore((s) => s.activeCatalog)
   const backdrop = BACKDROPS[activeCatalog.id] ?? BACKDROPS['cat-001']
   const t = useT()
+  // Single source of truth for the responsive layer: writes data-device on
+  // <html> from matchMedia (width+orientation+pointer) and keeps it live. Every
+  // tablet-p/tablet-l/desk variant keys off that attribute (responsive-spec §4).
+  // The portfolio device-mode toggle will pass an override here in a later step.
+  useDeviceClass()
   // Focused views — no bottom nav, back button instead
   const immersive =
     pathname.startsWith('/producto') ||
@@ -57,10 +63,10 @@ function MobileApp() {
   // melts away to the plain full-screen mobile app. (Studio standard — see
   // portfolio-framework-spec.md › Locked Decision #5 + §F.)
   return (
-    <div className="lg:flex lg:min-h-dvh lg:items-center lg:justify-center lg:bg-neutral-900 lg:p-6 lg:cursor-none">
+    <div className="desk:flex desk:min-h-dvh desk:items-center desk:justify-center desk:bg-neutral-900 desk:p-6 desk:cursor-none">
       {/* Blurred ambient backdrop — the phone sits on a stage (desktop only).
           Crossfades when the catalog changes (keyed by backdrop src). */}
-      <div aria-hidden="true" className="fixed inset-0 hidden lg:block">
+      <div aria-hidden="true" className="fixed inset-0 hidden desk:block">
         <div
           key={backdrop}
           className="size-full scale-110 bg-cover bg-center blur-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700"
@@ -73,7 +79,7 @@ function MobileApp() {
       <Link
         to="/"
         aria-label={t.caseStudy}
-        className="fixed left-6 top-6 z-[60] hidden items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur transition-colors hover:bg-black/60 lg:flex"
+        className="fixed left-6 top-6 z-[60] hidden items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur transition-colors hover:bg-black/60 desk:flex"
       >
         {/* Optical alignment: nudge the arrow's stem onto the text's x-height
             axis (2px down at this size) — items-center alone leaves it high. */}
@@ -81,9 +87,9 @@ function MobileApp() {
         {t.caseStudy}
       </Link>
 
-      <div className="relative mx-auto min-h-dvh w-full max-w-md bg-background lg:h-[min(860px,calc(100dvh-3rem))] lg:min-h-0 lg:w-[420px] lg:max-w-none lg:overflow-hidden lg:rounded-[2.75rem] lg:border-[12px] lg:border-neutral-900 lg:shadow-2xl lg:[transform:translateZ(0)]">
+      <div className="relative mx-auto min-h-dvh w-full max-w-md bg-background desk:h-[min(860px,calc(100dvh-3rem))] desk:min-h-0 desk:w-[420px] desk:max-w-none desk:overflow-hidden desk:rounded-[2.75rem] desk:border-[12px] desk:border-neutral-900 desk:shadow-2xl desk:[transform:translateZ(0)]">
         <TopBar />
-        <main className={`lg:h-full lg:overflow-y-auto ${immersive ? 'pt-14' : 'pb-[60px] pt-14'}`}>
+        <main className={`desk:h-full desk:overflow-y-auto ${immersive ? 'pt-14' : 'pb-[60px] pt-14'}`}>
           <Routes>
             <Route path="/app" element={<Home />} />
             <Route path="/catalogo" element={<CatalogoScreen />} />

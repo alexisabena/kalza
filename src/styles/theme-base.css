@@ -10,6 +10,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Responsive device classes (responsive-spec §4). Driven by a `data-device`
+   attribute on <html> — set from matchMedia by useDeviceClass and overridable by
+   the portfolio device-mode toggle — rather than raw @media, so real devices and
+   the toggle share one code path (§6bis). `desk` replaces the old width-only
+   `lg:` frame gate: it now also requires a fine pointer, so wide tablets fall
+   into the tablet classes instead of the desktop phone frame. */
+@custom-variant tablet-p ([data-device='tablet-p'] &);
+@custom-variant tablet-l ([data-device='tablet-l'] &);
+@custom-variant desk ([data-device='desk'] &);
+
 :root {
   --background: oklch(1.0000 0 0);
   --foreground: oklch(0.2178 0 0);
