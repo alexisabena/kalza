@@ -16,6 +16,7 @@ import { OrderDetailScreen } from '@/screens/OrderDetailScreen'
 import { ClientesScreen } from '@/screens/ClientesScreen'
 import { PedidosScreen } from '@/screens/PedidosScreen'
 import { IngresosScreen } from '@/screens/IngresosScreen'
+import { SettingsScreen } from '@/screens/SettingsScreen'
 import { AdminApp } from '@/admin/AdminApp'
 import { CaseStudyPage } from '@/case/CaseStudyPage'
 
@@ -53,7 +54,8 @@ function MobileApp() {
     pathname.startsWith('/producto') ||
     pathname.startsWith('/pedido/') || // note the slash: /pedidos is a tab, /pedido/:id is not
     pathname === '/carrito' ||
-    pathname === '/compartir'
+    pathname === '/compartir' ||
+    pathname === '/ajustes'
 
   // On desktop the app is reviewed as a real device (à la Xcode/Swift previews):
   // a phone with a bezel, inset and front-and-center on a blurred backdrop — not
@@ -103,6 +105,7 @@ function MobileApp() {
             <Route path="/pedidos" element={<PedidosScreen />} />
             <Route path="/pedido/:id" element={<OrderDetailScreen />} />
             <Route path="/ingresos" element={<IngresosScreen />} />
+            <Route path="/ajustes" element={<SettingsScreen />} />
             <Route path="*" element={<Navigate to="/app" replace />} />
           </Routes>
         </main>

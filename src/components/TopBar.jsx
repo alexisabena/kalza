@@ -45,11 +45,13 @@ export function TopBar() {
     pathname.startsWith('/producto') ||
     pathname.startsWith('/pedido/') ||
     pathname === '/carrito' ||
-    pathname === '/compartir'
+    pathname === '/compartir' ||
+    pathname === '/ajustes'
   const isCart = pathname === '/carrito'
   const isShare = pathname === '/compartir'
+  const isSettings = pathname === '/ajustes'
   // The cart belongs to the buyer; the vendedora shares instead of buying
-  const showCart = role === 'buyer' && !isCart && !isShare
+  const showCart = role === 'buyer' && !isCart && !isShare && !isSettings
 
   return (
     <>
@@ -76,7 +78,13 @@ export function TopBar() {
 
         {/* aria-live announces the rebrand to screen readers on catalog switch */}
         <span aria-live="polite" className="truncate text-center text-lg font-bold text-primary">
-          {isCart ? t.topbar.cart : isShare ? t.topbar.share : activeCatalog.brand}
+          {isCart
+            ? t.topbar.cart
+            : isShare
+              ? t.topbar.share
+              : isSettings
+                ? t.topbar.settings
+                : activeCatalog.brand}
         </span>
 
         {showCart ? <CartButton /> : <span aria-hidden="true" />}

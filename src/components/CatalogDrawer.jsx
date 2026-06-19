@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useSessionStore } from '@/stores/sessionStore'
-import { X, ExternalLink, ArrowLeft } from 'lucide-react'
+import { X, ExternalLink, ArrowLeft, Settings, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useT, useLocale, LOCALES } from '@/i18n'
 
@@ -100,64 +100,102 @@ export function CatalogDrawer({ open, onClose }) {
           })}
         </ul>
 
-        {/* Demo-only: flip between profiles to present both experiences */}
+        {/* Drawer bottom — real-app nav split from portfolio-only controls
+            (responsive-spec §5.2.1). Settings sits ON TOP because in the real
+            product it lives at the bottom of the sidebar; the demo controls below
+            are visibly set apart (gray panel + ⓘ) so a reviewer reads them as
+            illustrative, not part of the shipping app. */}
         <div className="mt-auto border-t p-4">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">{t.drawer.profile}</p>
-          <div className="flex gap-2">
-            {roles.map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRole(r)}
-                aria-pressed={role === r}
-                className={cn(
-                  'h-10 flex-1 rounded-md border text-sm font-medium',
-                  role === r && 'border-primary bg-primary text-primary-foreground'
-                )}
-              >
-                {t.drawer[r]}
-              </button>
-            ))}
-          </div>
-
-          {/* Language switcher — reviewer affordance (the app ships ES) */}
-          <p className="mb-2 mt-4 text-xs font-medium text-muted-foreground">{t.drawer.language}</p>
-          <div className="flex gap-2">
-            {LOCALES.map((l) => (
-              <button
-                key={l.code}
-                type="button"
-                onClick={() => setLocale(l.code)}
-                aria-pressed={locale === l.code}
-                className={cn(
-                  'h-10 flex-1 rounded-md border text-sm font-medium',
-                  locale === l.code && 'border-primary bg-primary text-primary-foreground'
-                )}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
-
-          {/* The mayorista's surface is a separate desktop back-office */}
+          {/* Real app: Settings — shown for both roles */}
           <Link
-            to="/admin"
+            to="/ajustes"
             onClick={onClose}
-            className="mt-4 flex h-10 items-center justify-center gap-2 rounded-md border text-sm font-medium text-muted-foreground hover:bg-muted"
+            className="flex h-11 items-center gap-3 rounded-md px-2 text-sm font-medium hover:bg-muted"
           >
-            <ExternalLink className="size-4" aria-hidden="true" />
-            {t.drawer.backoffice}
+            <Settings className="size-4" aria-hidden="true" />
+            {t.drawer.settings}
           </Link>
 
-          {/* Return to the portfolio case study */}
-          <Link
-            to="/"
-            onClick={onClose}
-            className="mt-2 flex h-10 items-center justify-center gap-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted"
-          >
-            <ArrowLeft className="size-4 translate-y-[2px]" aria-hidden="true" />
-            {t.drawer.caseStudy}
-          </Link>
+          {/* Portfolio-only controls — visually separated panel + ⓘ tooltip */}
+          <div className="mt-3 rounded-lg bg-muted/60 p-3">
+            <div className="mb-2 flex items-center gap-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t.drawer.portfolioControls}
+              </p>
+              <span className="group relative inline-flex">
+                <button
+                  type="button"
+                  aria-label={t.drawer.portfolioNote}
+                  className="flex text-muted-foreground"
+                >
+                  <Info className="size-3.5" aria-hidden="true" />
+                </button>
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute bottom-full left-0 z-10 mb-1 w-56 rounded-md bg-popover p-2 text-xs text-popover-foreground opacity-0 shadow-md ring-1 ring-border transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  {t.drawer.portfolioNote}
+                </span>
+              </span>
+            </div>
+
+            <p className="mb-2 text-xs font-medium text-muted-foreground">{t.drawer.profile}</p>
+            <div className="flex gap-2">
+              {roles.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  aria-pressed={role === r}
+                  className={cn(
+                    'h-10 flex-1 rounded-md border bg-background text-sm font-medium',
+                    role === r && 'border-primary bg-primary text-primary-foreground'
+                  )}
+                >
+                  {t.drawer[r]}
+                </button>
+              ))}
+            </div>
+
+            {/* Language switcher — reviewer affordance (the app ships ES) */}
+            <p className="mb-2 mt-4 text-xs font-medium text-muted-foreground">{t.drawer.language}</p>
+            <div className="flex gap-2">
+              {LOCALES.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => setLocale(l.code)}
+                  aria-pressed={locale === l.code}
+                  className={cn(
+                    'h-10 flex-1 rounded-md border bg-background text-sm font-medium',
+                    locale === l.code && 'border-primary bg-primary text-primary-foreground'
+                  )}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+
+            {/* The mayorista's surface is a separate desktop back-office */}
+            <Link
+              to="/admin"
+              onClick={onClose}
+              className="mt-4 flex h-10 items-center justify-center gap-2 rounded-md border bg-background text-sm font-medium text-muted-foreground hover:bg-muted"
+            >
+              <ExternalLink className="size-4" aria-hidden="true" />
+              {t.drawer.backoffice}
+            </Link>
+
+            {/* Return to the portfolio case study */}
+            <Link
+              to="/"
+              onClick={onClose}
+              className="mt-2 flex h-10 items-center justify-center gap-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted"
+            >
+              <ArrowLeft className="size-4 translate-y-[2px]" aria-hidden="true" />
+              {t.drawer.caseStudy}
+            </Link>
+          </div>
         </div>
       </aside>
       </div>
