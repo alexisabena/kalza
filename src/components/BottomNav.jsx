@@ -47,6 +47,9 @@ export function BottomNav() {
     <nav
       className={cn(
         'fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t bg-background pb-[env(safe-area-inset-bottom)]',
+        // tablet relaxes the phone-column cap so the bar spans the tablet width
+        // (tablet-l chrome becomes a floating bar in a later step)
+        'tablet-p:max-w-none tablet-l:max-w-none',
         'motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-in-out',
         hidden && 'translate-y-full'
       )}

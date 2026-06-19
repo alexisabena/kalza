@@ -53,7 +53,7 @@ export function TopBar() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-20 mx-auto grid h-14 max-w-md grid-cols-[3rem_1fr_3rem] items-center border-b bg-background px-1">
+      <header className="fixed inset-x-0 top-0 z-20 mx-auto grid h-14 max-w-md grid-cols-[3rem_1fr_3rem] items-center border-b bg-background px-1 tablet-p:max-w-none tablet-l:max-w-none">
         {showBack ? (
           <button
             type="button"

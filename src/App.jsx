@@ -87,7 +87,10 @@ function MobileApp() {
         {t.caseStudy}
       </Link>
 
-      <div className="relative mx-auto min-h-dvh w-full max-w-md bg-background desk:h-[min(860px,calc(100dvh-3rem))] desk:min-h-0 desk:w-[420px] desk:max-w-none desk:overflow-hidden desk:rounded-[2.75rem] desk:border-[12px] desk:border-neutral-900 desk:shadow-2xl desk:[transform:translateZ(0)]">
+      {/* max-w-md keeps the canonical phone column; tablet classes relax it so a
+          real tablet fills its width (tablet-p large phone; tablet-l lets the
+          catalog letterbox itself). desk re-pins to the 420px device frame. */}
+      <div className="relative mx-auto min-h-dvh w-full max-w-md bg-background tablet-p:max-w-none tablet-l:max-w-none desk:h-[min(860px,calc(100dvh-3rem))] desk:min-h-0 desk:w-[420px] desk:max-w-none desk:overflow-hidden desk:rounded-[2.75rem] desk:border-[12px] desk:border-neutral-900 desk:shadow-2xl desk:[transform:translateZ(0)]">
         <TopBar />
         <main className={`desk:h-full desk:overflow-y-auto ${immersive ? 'pt-14' : 'pb-[60px] pt-14'}`}>
           <Routes>

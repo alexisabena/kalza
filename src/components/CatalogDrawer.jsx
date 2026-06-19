@@ -36,7 +36,7 @@ export function CatalogDrawer({ open, onClose }) {
           left edge on desktop, not the viewport edge (forced mobile frame).
           overflow-hidden clips the closed drawer to the column so it doesn't
           peek into the desktop gutter. */}
-      <div className="pointer-events-none fixed inset-y-0 left-0 right-0 z-40 mx-auto max-w-md overflow-hidden">
+      <div className="pointer-events-none fixed inset-y-0 left-0 right-0 z-40 mx-auto max-w-md overflow-hidden tablet-p:max-w-none tablet-l:max-w-none">
       <aside
         role="dialog"
         aria-modal="true"
