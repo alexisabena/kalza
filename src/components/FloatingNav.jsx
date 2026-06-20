@@ -123,13 +123,24 @@ export function FloatingNav() {
   const items = itemsByRole[role] ?? itemsByRole.buyer
 
   return (
-    // hidden everywhere but tablet-l — the floating reflow is a tablet-l-only move
-    <div className="pointer-events-none hidden tablet-l:block">
+    // The floating reflow is a tablet-l-only move, but the bars are always
+    // rendered so they can ANIMATE in/out (§6bis): off-screen + faded on
+    // phone/tablet-p/desk, risen + visible on tablet-l. display:none can't
+    // transition, so we gate with transform/opacity + pointer-events instead.
+    <div className="pointer-events-none">
       <CatalogQuickBar />
 
       <nav
         aria-label={t.topbar.menu}
-        className={cn(barBase, 'fixed inset-x-0 bottom-4 z-20 mx-auto w-fit justify-center px-2 py-1.5')}
+        className={cn(
+          barBase,
+          'fixed inset-x-0 bottom-4 z-20 mx-auto w-fit justify-center px-2 py-1.5',
+          // rises from the bottom, slightly delayed so it reads as a hand-off
+          // from the exiting top-bar icons; reduced-motion snaps.
+          'translate-y-[150%] opacity-0 pointer-events-none',
+          'tablet-l:translate-y-0 tablet-l:opacity-100 tablet-l:pointer-events-auto',
+          'motion-safe:transition-[transform,opacity] motion-safe:[transition-duration:var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-out)] motion-safe:[transition-delay:60ms]'
+        )}
       >
         {/* ☰ — toggles the catalog quick-switch bar, not the side drawer */}
         <button

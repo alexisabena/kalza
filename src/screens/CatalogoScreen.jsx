@@ -1,6 +1,7 @@
 import { useCatalogStore } from '@/stores/catalogStore'
 import { productsByCatalog } from '@/data/products'
 import { ProductCard } from '@/components/ProductCard'
+import { useDeviceAttr } from '@/lib/useDeviceClass'
 
 // Home — the active catalog as a masonry grid (DESIGN.md › Catalog grid).
 // Each card reveals its price plate after dwelling on screen (usePriceReveal);
@@ -16,6 +17,10 @@ import { ProductCard } from '@/components/ProductCard'
 export function CatalogoScreen() {
   const activeCatalog = useCatalogStore((s) => s.activeCatalog)
   const products = productsByCatalog[activeCatalog.id] ?? []
+  // Column-count isn't CSS-transitionable, so crossfade the masonry on a device-
+  // class change (and on catalog switch) by re-keying it → the new layout fades
+  // in while its images decode-fade (§6bis). motion-safe; reduced motion snaps.
+  const device = useDeviceAttr()
 
   return (
     <div className="p-4 tablet-p:p-6 tablet-l:mx-auto tablet-l:max-w-4xl tablet-l:px-6">
@@ -23,8 +28,8 @@ export function CatalogoScreen() {
         {activeCatalog.name} · {activeCatalog.season}
       </p>
       <div
-        key={activeCatalog.id}
-        className="columns-2 gap-2 tablet-p:gap-4 tablet-l:columns-3 tablet-l:gap-3"
+        key={`${activeCatalog.id}-${device}`}
+        className="columns-2 gap-2 tablet-p:gap-4 tablet-l:columns-3 tablet-l:gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"
       >
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />

@@ -17,9 +17,11 @@ function CartButton() {
     <Link
       to="/carrito"
       aria-label={t.topbar.cartAria(count)}
-      // tablet-l: the cart leaves the top bar for the floating nav (§5.2).
-      // invisible (not hidden) so its grid cell stays and the brand keeps centered.
-      className="relative flex size-12 items-center justify-center text-foreground tablet-l:invisible"
+      // tablet-l: the cart leaves the top bar for the floating nav (§5.2) — it
+      // EXITS to its edge (right) and fades (§6bis). opacity keeps the grid cell
+      // so the brand stays centered; pointer-events-none drops it from the tab
+      // order once gone. Motion via tokens; reduced-motion snaps.
+      className="relative flex size-12 items-center justify-center text-foreground motion-safe:transition-[transform,opacity] motion-safe:[transition-duration:var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-in)] tablet-l:pointer-events-none tablet-l:translate-x-16 tablet-l:opacity-0"
     >
       <ShoppingBag className="size-5" aria-hidden="true" />
       {count > 0 && (
@@ -80,9 +82,9 @@ export function TopBar() {
             type="button"
             onClick={() => navigate(-1)}
             aria-label={t.topbar.back}
-            // tablet-l: back leaves the top bar (immersive views carry their own);
-            // invisible keeps the grid cell so the brand stays centered.
-            className="flex size-12 items-center justify-center text-foreground tablet-l:invisible"
+            // tablet-l: back exits left + fades (immersive views carry their own
+            // back in the right column). opacity keeps the cell → brand centered.
+            className="flex size-12 items-center justify-center text-foreground motion-safe:transition-[transform,opacity] motion-safe:[transition-duration:var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-in)] tablet-l:pointer-events-none tablet-l:-translate-x-16 tablet-l:opacity-0"
           >
             <ChevronLeft className="size-5" aria-hidden="true" />
           </button>
@@ -91,9 +93,10 @@ export function TopBar() {
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label={t.topbar.menu}
-            // tablet-l: the hamburger moves into the floating nav (§5.2);
-            // invisible keeps the grid cell so the brand stays centered.
-            className="flex size-12 items-center justify-center text-foreground tablet-l:invisible"
+            // tablet-l: the hamburger EXITS to its edge (left) + fades, heading
+            // toward where it reappears in the floating nav (§6bis). opacity keeps
+            // the grid cell so the brand stays centered.
+            className="flex size-12 items-center justify-center text-foreground motion-safe:transition-[transform,opacity] motion-safe:[transition-duration:var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-in)] tablet-l:pointer-events-none tablet-l:-translate-x-16 tablet-l:opacity-0"
           >
             <Menu className="size-5" aria-hidden="true" />
           </button>

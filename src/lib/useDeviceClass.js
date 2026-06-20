@@ -56,3 +56,22 @@ export function useDeviceClass(override) {
 
   return applied
 }
+
+// Read-only subscriber to the live data-device attribute, for components that
+// aren't the writer (e.g. the catalog crossfading its grid when the class
+// changes). Observes <html> so it updates on real-device changes AND the
+// portfolio toggle's override.
+export function useDeviceAttr() {
+  const [device, setDevice] = useState(
+    () => (typeof document === 'undefined' ? 'phone' : document.documentElement.getAttribute('data-device') || 'phone')
+  )
+  useEffect(() => {
+    const root = document.documentElement
+    const sync = () => setDevice(root.getAttribute('data-device') || 'phone')
+    sync()
+    const obs = new MutationObserver(sync)
+    obs.observe(root, { attributes: true, attributeFilter: ['data-device'] })
+    return () => obs.disconnect()
+  }, [])
+  return device
+}
