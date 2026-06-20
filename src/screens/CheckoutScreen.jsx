@@ -9,6 +9,7 @@ import { colors } from '@/data/colors'
 import { ProductImage } from '@/components/ProductImage'
 import { SuccessCheck } from '@/components/SuccessCheck'
 import { Button } from '@/components/ui/button'
+import { GatewayLogo } from '@/components/GatewayLogo'
 import { GATEWAYS, gatewayById } from '@/data/gateways'
 import { useT } from '@/i18n'
 
@@ -251,18 +252,19 @@ export function CheckoutScreen() {
                 onClick={() => setSelected(gid)}
                 aria-pressed={active}
                 className={cn(
-                  'flex items-center justify-between rounded-lg border px-3 py-2.5 text-left',
+                  'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left',
                   active && 'border-primary ring-1 ring-primary'
                 )}
               >
-                <span>
+                <GatewayLogo id={gid} />
+                <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium">{t.gateways[gid]}</span>
                   <span className="block text-xs text-muted-foreground">{t.gatewayDesc[gid]}</span>
                 </span>
                 {active ? (
-                  <Check className="size-4 text-primary" aria-hidden="true" />
+                  <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />
                 ) : (
-                  <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 )}
               </button>
             )

@@ -3,6 +3,7 @@ import { Check, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
+import { GatewayLogo } from '@/components/GatewayLogo'
 import { GATEWAYS } from '@/data/gateways'
 import { useT } from '@/i18n'
 
@@ -221,18 +222,19 @@ function BuyerSettings() {
                   onClick={() => setPreferredGateway(id)}
                   aria-pressed={active}
                   className={cn(
-                    'flex items-center justify-between rounded-lg border px-3 py-2.5 text-left',
+                    'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left',
                     active && 'border-primary ring-1 ring-primary'
                   )}
                 >
-                  <span>
+                  <GatewayLogo id={id} />
+                  <span className="min-w-0 flex-1">
                     <span className="block text-sm font-medium">{t.gateways[id]}</span>
                     <span className="block text-xs text-muted-foreground">{t.gatewayDesc[id]}</span>
                   </span>
                   {active ? (
-                    <Check className="size-4 text-primary" aria-hidden="true" />
+                    <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />
                   ) : (
-                    <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   )}
                 </button>
               )
