@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { Check, Share2 } from 'lucide-react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { Check, Share2, ChevronLeft, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useCartStore } from '@/stores/cartStore'
+import { useCartStore, selectCount } from '@/stores/cartStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useSharesStore } from '@/stores/sharesStore'
 import { getProduct } from '@/data/products'
@@ -14,6 +14,7 @@ import { Lightbox } from '@/components/Lightbox'
 import { useDragScroll } from '@/lib/useDragScroll'
 import { useLoopCarousel } from '@/lib/useLoopCarousel'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/i18n'
 
 const AUTOPLAY_MS = 3500
 
@@ -48,13 +49,15 @@ function Carousel({ images, alt }) {
   }
 
   return (
-    <div className="relative">
+    // tablet-l: the carousel becomes the full-height left column (§5.3) — the
+    // slides drop their 4/5 aspect box and fill the column height instead.
+    <div className="relative tablet-l:h-full">
       <div
         ref={trackRef}
         onScroll={onScroll}
         onPointerDown={() => setAuto(false)}
         onWheel={() => setAuto(false)}
-        className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]"
+        className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] tablet-l:h-full"
       >
         {display.map((src, i) => (
           <button
@@ -62,14 +65,14 @@ function Carousel({ images, alt }) {
             type="button"
             onClick={() => setLightboxAt(active)}
             aria-label={`Ampliar foto de ${alt}`}
-            className="w-full shrink-0 snap-center cursor-zoom-in"
+            className="w-full shrink-0 snap-center cursor-zoom-in tablet-l:h-full"
           >
             <img
               src={src}
               alt={`${alt} — foto ${i + 1}`}
               onError={() => markFailed(src)}
               draggable={false}
-              className="aspect-[4/5] w-full select-none bg-muted object-cover"
+              className="aspect-[4/5] w-full select-none bg-muted object-cover tablet-l:aspect-auto tablet-l:h-full"
             />
           </button>
         ))}
@@ -118,7 +121,9 @@ export function ProductDetailScreen() {
   const navigate = useNavigate()
   const product = getProduct(id)
   const addToCart = useCartStore((s) => s.add)
+  const cartCount = useCartStore(selectCount)
   const role = useSessionStore((s) => s.role)
+  const t = useT()
 
   const [colorId, setColorId] = useState(product?.colorIds[0])
   const [size, setSize] = useState(null)
@@ -158,10 +163,45 @@ export function ProductDetailScreen() {
   }
 
   return (
-    <div className="pb-24">
-      <Carousel images={product.images} alt={product.name} />
+    // tablet-l: two columns — full-height carousel left, info + CTA right
+    // (§5.3). Phone / tablet-p keep the single-column stack (fluid scale only).
+    <div className="pb-24 tablet-l:grid tablet-l:h-[calc(100dvh-3.5rem)] tablet-l:grid-cols-2 tablet-l:overflow-hidden tablet-l:pb-0">
+      <div className="tablet-l:h-full tablet-l:overflow-hidden">
+        <Carousel images={product.images} alt={product.name} />
+      </div>
 
-      <div className="flex flex-col gap-5 p-4">
+      {/* Right column on tablet-l: its own scroller with the CTA pinned to its
+          bottom (not the viewport). On phone/tablet-p it's just the normal flow. */}
+      <div className="tablet-l:flex tablet-l:h-full tablet-l:min-h-0 tablet-l:flex-col">
+        {/* Back + cart live at the top of the right column on tablet-l. (The
+            global top bar still carries them until the nav-reflow step empties
+            it on tablet-l; this is the home they move to.) */}
+        <div className="hidden items-center justify-between border-b px-2 py-2 tablet-l:flex">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            aria-label={t.topbar.back}
+            className="flex size-11 items-center justify-center text-foreground"
+          >
+            <ChevronLeft className="size-5" aria-hidden="true" />
+          </button>
+          {role === 'buyer' && (
+            <Link
+              to="/carrito"
+              aria-label={t.topbar.cartAria(cartCount)}
+              className="relative flex size-11 items-center justify-center text-foreground"
+            >
+              <ShoppingBag className="size-5" aria-hidden="true" />
+              {cartCount > 0 && (
+                <span className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
+            </Link>
+          )}
+        </div>
+
+      <div className="flex flex-col gap-5 p-4 tablet-l:min-h-0 tablet-l:flex-1 tablet-l:overflow-y-auto">
         <div>
           <h1 className="text-xl font-bold">{product.name}</h1>
           <p className="mt-1 text-2xl font-semibold text-primary">
@@ -226,9 +266,11 @@ export function ProductDetailScreen() {
         </section>
       </div>
 
-      {/* Sticky CTA — detail view has no bottom nav, so it owns the bottom edge.
-          The vendedora shares the item with a clienta; the buyer adds to cart. */}
-      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      {/* Primary CTA — detail view has no bottom nav, so it owns the bottom edge.
+          Phone/tablet-p: fixed to the viewport bottom (max-w-md centered). tablet-l:
+          un-fix and sit at the bottom of the RIGHT column (§5.3). The vendedora
+          shares the item with a clienta; the buyer adds to cart. */}
+      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] tablet-l:static tablet-l:mx-0 tablet-l:max-w-none">
         {role === 'retailer' ? (
           <Button className="w-full" onClick={() => navigate(`/compartir?producto=${product.id}`)}>
             <Share2 aria-hidden="true" /> Compartir con clienta
@@ -251,6 +293,7 @@ export function ProductDetailScreen() {
             )}
           </Button>
         )}
+      </div>
       </div>
     </div>
   )
