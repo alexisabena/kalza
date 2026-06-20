@@ -2,6 +2,12 @@
 // is never broken mid-translation.
 export const en = {
   caseStudy: 'Case study',
+  deviceMode: {
+    label: 'Device view',
+    mobile: 'Mobile',
+    tabletV: 'Tablet portrait',
+    tabletH: 'Tablet landscape',
+  },
   nav: { catalogo: 'Catalog', inicio: 'Home', pedidos: 'Orders', ingresos: 'Income' },
   topbar: {
     cart: 'My cart',

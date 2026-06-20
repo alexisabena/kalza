@@ -57,6 +57,26 @@ export function useDeviceClass(override) {
   return applied
 }
 
+// The REAL device class from matchMedia, ignoring any override. Lets the shell
+// decide whether to show the desktop stage (the §F phone-on-backdrop) — which
+// depends on the actual hardware (a desktop with a mouse) — independently of the
+// content class the portfolio device-mode toggle is simulating inside the frame.
+export function useRealDeviceClass() {
+  const [real, setReal] = useState(computeDeviceClass)
+  useEffect(() => {
+    const update = () => setReal(computeDeviceClass())
+    window.addEventListener('resize', update)
+    const ptr = window.matchMedia('(pointer: coarse)')
+    ptr.addEventListener('change', update)
+    update()
+    return () => {
+      window.removeEventListener('resize', update)
+      ptr.removeEventListener('change', update)
+    }
+  }, [])
+  return real
+}
+
 // Read-only subscriber to the live data-device attribute, for components that
 // aren't the writer (e.g. the catalog crossfading its grid when the class
 // changes). Observes <html> so it updates on real-device changes AND the

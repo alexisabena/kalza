@@ -55,7 +55,7 @@ export function TouchCursor() {
       aria-hidden="true"
       style={{ opacity: 0 }}
       className={cn(
-        'pointer-events-none fixed left-0 top-0 z-[100] hidden size-9 rounded-full desk:block',
+        'pointer-events-none fixed left-0 top-0 z-[100] block size-9 rounded-full',
         'border border-white/50 bg-neutral-900/35 shadow-md backdrop-blur-[1px]',
         'motion-safe:transition-[width,height,background-color] motion-safe:duration-150',
         pressed && 'size-7 bg-neutral-900/60'

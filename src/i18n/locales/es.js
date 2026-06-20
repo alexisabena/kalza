@@ -2,6 +2,12 @@
 // this; any key missing from en.js falls back to the Spanish here.
 export const es = {
   caseStudy: 'Caso de estudio',
+  deviceMode: {
+    label: 'Vista de dispositivo',
+    mobile: 'Móvil',
+    tabletV: 'Tablet vertical',
+    tabletH: 'Tablet horizontal',
+  },
   nav: { catalogo: 'Catálogo', inicio: 'Inicio', pedidos: 'Pedidos', ingresos: 'Ingresos' },
   topbar: {
     cart: 'Mi carrito',
