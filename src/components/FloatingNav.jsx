@@ -134,12 +134,13 @@ export function FloatingNav() {
         aria-label={t.topbar.menu}
         className={cn(
           barBase,
-          'fixed inset-x-0 bottom-4 z-20 mx-auto w-fit justify-center px-2 py-1.5',
+          // p-3 = 12px all round; gap-6 = 24px between buttons (Alexis)
+          'fixed inset-x-0 bottom-4 z-20 mx-auto w-fit justify-center gap-6 p-3',
           // rises from the bottom, slightly delayed so it reads as a hand-off
           // from the exiting top-bar icons; reduced-motion snaps.
           'translate-y-[150%] opacity-0 pointer-events-none',
           'tablet-l:translate-y-0 tablet-l:opacity-100 tablet-l:pointer-events-auto',
-          'motion-safe:transition-[transform,opacity] motion-safe:[transition-duration:var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-out)] motion-safe:[transition-delay:60ms]'
+          'motion-safe:transition-[transform,opacity] motion-safe:[transition-duration:var(--dur-slow)] motion-safe:[transition-timing-function:var(--ease-out)] motion-safe:[transition-delay:80ms]'
         )}
       >
         {/* ☰ — toggles the catalog quick-switch bar, not the side drawer */}

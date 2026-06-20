@@ -192,7 +192,7 @@ export function CatalogDrawer({ open, onClose }) {
               onClick={onClose}
               className="mt-2 flex h-10 items-center justify-center gap-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted"
             >
-              <ArrowLeft className="size-4 translate-y-[2px]" aria-hidden="true" />
+              <ArrowLeft className="size-4" aria-hidden="true" />
               {t.drawer.caseStudy}
             </Link>
           </div>

@@ -29,7 +29,7 @@ export function CatalogoScreen() {
       </p>
       <div
         key={`${activeCatalog.id}-${device}`}
-        className="columns-2 gap-2 tablet-p:gap-4 tablet-l:columns-3 tablet-l:gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"
+        className="columns-2 gap-2 tablet-p:gap-4 tablet-l:columns-3 tablet-l:gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500 motion-safe:ease-out"
       >
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />

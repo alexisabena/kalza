@@ -107,9 +107,7 @@ function MobileApp() {
             aria-label={t.caseStudy}
             className="fixed left-6 top-6 z-[60] flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur transition-colors hover:bg-black/60"
           >
-            {/* Optical alignment: nudge the arrow's stem onto the text's x-height
-                axis (2px down at this size) — items-center alone leaves it high. */}
-            <ArrowLeft className="size-4 translate-y-[2px]" aria-hidden="true" />
+            <ArrowLeft className="size-4" aria-hidden="true" />
             {t.caseStudy}
           </Link>
           <DeviceModeToggle mode={mode} setMode={setMode} />
@@ -122,7 +120,7 @@ function MobileApp() {
       <div
         className={
           onDesktop
-            ? `relative mx-auto min-h-0 overflow-hidden border-neutral-900 bg-background shadow-2xl [transform:translateZ(0)] motion-safe:transition-[width,height,border-radius] motion-safe:[transition-duration:var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-out)] ${FRAME[mode]}`
+            ? `relative mx-auto min-h-0 overflow-hidden border-neutral-900 bg-background shadow-2xl [transform:translateZ(0)] motion-safe:transition-[width,height,border-radius] motion-safe:[transition-duration:var(--dur-frame)] motion-safe:[transition-timing-function:var(--ease-frame)] ${FRAME[mode]}`
             : 'relative mx-auto min-h-dvh w-full max-w-md bg-background tablet-p:max-w-none tablet-l:max-w-none'
         }
       >
