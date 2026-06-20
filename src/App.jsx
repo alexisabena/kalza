@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
+import { FloatingNav } from '@/components/FloatingNav'
 import { TouchCursor } from '@/components/TouchCursor'
 import { useDeviceClass } from '@/lib/useDeviceClass'
 import { useSessionStore } from '@/stores/sessionStore'
@@ -96,7 +97,7 @@ function MobileApp() {
           catalog letterbox itself). desk re-pins to the 420px device frame. */}
       <div className="relative mx-auto min-h-dvh w-full max-w-md bg-background tablet-p:max-w-none tablet-l:max-w-none desk:h-[min(860px,calc(100dvh-3rem))] desk:min-h-0 desk:w-[420px] desk:max-w-none desk:overflow-hidden desk:rounded-[2.75rem] desk:border-[12px] desk:border-neutral-900 desk:shadow-2xl desk:[transform:translateZ(0)]">
         <TopBar />
-        <main className={`desk:h-full desk:overflow-y-auto ${immersive ? 'pt-14' : 'pb-[60px] pt-14'}`}>
+        <main className={`desk:h-full desk:overflow-y-auto ${immersive ? 'pt-14' : 'pb-[60px] pt-14 tablet-l:pb-24'}`}>
           <Routes>
             <Route path="/app" element={<Home />} />
             <Route path="/catalogo" element={<CatalogoScreen />} />
@@ -112,7 +113,10 @@ function MobileApp() {
             <Route path="*" element={<Navigate to="/app" replace />} />
           </Routes>
         </main>
+        {/* Phone/tablet-p/desk show BottomNav; tablet-l shows the floating nav
+            instead (each gates itself via the device-class variants). */}
         {!immersive && <BottomNav />}
+        {!immersive && <FloatingNav />}
       </div>
 
       {/* Outside the device transform so it tracks viewport coordinates. */}
