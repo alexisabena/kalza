@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { useLang } from '@/case/LanguageContext'
 import { PhoneFrame } from '@/case/PhoneScreens'
+import { MobileCaseHero } from '@/case/MobileCaseHero'
 import { useScrollScreen } from '@/case/useScrollScreen'
 import { QrAppModal } from '@/case/QrAppModal'
 
@@ -55,24 +56,32 @@ export function CaseStudyView() {
         {/* Narrative */}
         <div ref={ref} className="min-w-0 py-16 lg:py-24">
           <Beat screen="catalog" first>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-primary">
-              {t.hero.eyebrow}
-            </p>
-            <h1 className="text-4xl font-bold leading-tight sm:text-5xl">{t.hero.title}</h1>
-            <p className="mt-5 text-lg text-muted-foreground">{t.hero.lead}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <button type="button" onClick={() => setQrOpen(true)} className={cn(buttonVariants(), 'px-5')}>
-                <Store aria-hidden="true" /> {t.hero.ctaApp}
-              </button>
-              <Link to="/admin" className={cn(buttonVariants({ variant: 'outline' }), 'px-5')}>
-                <LayoutDashboard aria-hidden="true" /> {t.hero.ctaAdmin}
-              </Link>
+            {/* Mobile: the app frame leads the hero, above the eyebrow + title;
+                its CTAs are raised on tap (MobileCaseHero). */}
+            <MobileCaseHero catalog={catalogs[0]} t={t} onOpenApp={() => setQrOpen(true)} />
+
+            {/* Desktop: the classic hero (the following phone lives in the right
+                column). */}
+            <div className="hidden lg:block">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-primary">
+                {t.hero.eyebrow}
+              </p>
+              <h1 className="text-4xl font-bold leading-tight sm:text-5xl">{t.hero.title}</h1>
+              <p className="mt-5 text-lg text-muted-foreground">{t.hero.lead}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button type="button" onClick={() => setQrOpen(true)} className={cn(buttonVariants(), 'px-5')}>
+                  <Store aria-hidden="true" /> {t.hero.ctaApp}
+                </button>
+                <Link to="/admin" className={cn(buttonVariants({ variant: 'outline' }), 'px-5')}>
+                  <LayoutDashboard aria-hidden="true" /> {t.hero.ctaAdmin}
+                </Link>
+              </div>
+              <dl className="mt-10 flex flex-wrap gap-8 text-sm">
+                <Meta label={t.hero.yearLabel} value={t.hero.year} />
+                <Meta label={t.hero.roleLabel} value={t.hero.role} />
+                <Meta label={t.hero.stackLabel} value={t.hero.stack} />
+              </dl>
             </div>
-            <dl className="mt-10 flex flex-wrap gap-8 text-sm">
-              <Meta label={t.hero.yearLabel} value={t.hero.year} />
-              <Meta label={t.hero.roleLabel} value={t.hero.role} />
-              <Meta label={t.hero.stackLabel} value={t.hero.stack} />
-            </dl>
           </Beat>
 
           <Beat screen="catalog" eyebrow={t.reto.eyebrow} title={t.reto.title}>
