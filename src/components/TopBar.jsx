@@ -46,12 +46,14 @@ export function TopBar() {
     pathname.startsWith('/pedido/') ||
     pathname === '/carrito' ||
     pathname === '/compartir' ||
-    pathname === '/ajustes'
+    pathname === '/ajustes' ||
+    pathname.startsWith('/pago/')
   const isCart = pathname === '/carrito'
   const isShare = pathname === '/compartir'
   const isSettings = pathname === '/ajustes'
+  const isCheckout = pathname.startsWith('/pago/')
   // The cart belongs to the buyer; the vendedora shares instead of buying
-  const showCart = role === 'buyer' && !isCart && !isShare && !isSettings
+  const showCart = role === 'buyer' && !isCart && !isShare && !isSettings && !isCheckout
 
   return (
     <>
@@ -84,7 +86,9 @@ export function TopBar() {
               ? t.topbar.share
               : isSettings
                 ? t.topbar.settings
-                : activeCatalog.brand}
+                : isCheckout
+                  ? t.topbar.checkout
+                  : activeCatalog.brand}
         </span>
 
         {showCart ? <CartButton /> : <span aria-hidden="true" />}

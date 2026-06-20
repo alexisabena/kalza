@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Send, Check, HandCoins, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
@@ -30,7 +30,8 @@ export function OrderDetailScreen() {
   const { id } = useParams()
   const { role } = useSessionStore()
   const clients = useClientsStore((s) => s.clients)
-  const { orders, pay, collect, deliver, addMessage } = useOrdersStore()
+  const { orders, collect, deliver, addMessage } = useOrdersStore()
+  const navigate = useNavigate()
   const order = orders.find((o) => o.id === id)
   const [draft, setDraft] = useState('')
 
@@ -98,7 +99,7 @@ export function OrderDetailScreen() {
             Tu pedido está apartado. Confirma tu pago antes del{' '}
             <strong>{formatDeadline(order.payDeadline)}</strong> o el apartado se libera.
           </p>
-          <Button className="w-full" onClick={() => pay(order.id)}>
+          <Button className="w-full" onClick={() => navigate(`/pago/${order.id}`)}>
             <HandCoins aria-hidden="true" /> Pagar {mxn(total)}
           </Button>
         </div>
