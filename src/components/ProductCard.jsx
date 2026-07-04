@@ -10,7 +10,7 @@ export function ProductCard({ product }) {
   const [ref, revealed] = usePriceReveal()
 
   return (
-    <article ref={ref} className="relative mb-2 break-inside-avoid overflow-hidden rounded-lg">
+    <article ref={ref} className="relative mb-2 break-inside-avoid overflow-hidden rounded-lg tablet-p:mb-4 tablet-l:mb-3">
       <Link to={`/producto/${product.id}`} className="block">
         <ProductImage src={product.images[0]} alt={product.name} aspect={product.aspect} />
         <div

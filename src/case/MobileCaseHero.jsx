@@ -19,6 +19,7 @@ export function MobileCaseHero({ catalog, t, onOpenApp }) {
   const slotRef = useRef(null)
   const [barOpen, setBarOpen] = useState(false)
   const [dock, setDock] = useState(false) // compact frame pinned (scrolled past hero)
+  const [titleNearDock, setTitleNearDock] = useState(false) // a section title is passing under the dock's band
 
   // Pin the compact frame once the hero frame scrolls out of view.
   useEffect(() => {
@@ -26,6 +27,20 @@ export function MobileCaseHero({ catalog, t, onOpenApp }) {
     if (!el) return
     const obs = new IntersectionObserver(([e]) => setDock(!e.isIntersecting), { threshold: 0 })
     obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  // Section titles run full-width in this column, so the pinned dock (top-[58px]
+  // to ~256px) would otherwise sit on top of whichever title is scrolling past.
+  // Hide the dock while any title is in that band instead of guessing a safe size.
+  useEffect(() => {
+    const titles = document.querySelectorAll('[data-case-title]')
+    if (!titles.length) return
+    const obs = new IntersectionObserver(
+      (entries) => setTitleNearDock(entries.some((e) => e.isIntersecting)),
+      { rootMargin: '-58px 0px -70% 0px' }
+    )
+    titles.forEach((t) => obs.observe(t))
     return () => obs.disconnect()
   }, [])
 
@@ -84,17 +99,20 @@ export function MobileCaseHero({ catalog, t, onOpenApp }) {
         {actions}
       </div>
 
-      {/* Compact frame pinned below the header for the rest of the page */}
+      {/* Compact frame pinned below the header for the rest of the page — anchored
+          to the corner, and hidden whenever a section title is passing through its
+          band (see the titleNearDock observer above), so it never sits on top of
+          text. */}
       <button
         type="button"
         onClick={() => setBarOpen(true)}
         aria-label={t.hero.ctaApp}
         className={cn(
-          'fixed left-1/2 top-[58px] z-20 h-[198px] w-[110px] -translate-x-1/2 overflow-visible motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out',
-          dock ? 'opacity-100' : 'pointer-events-none -translate-y-3 opacity-0'
+          'fixed right-4 top-[58px] z-20 h-[198px] w-[110px] overflow-visible motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out',
+          dock && !titleNearDock ? 'opacity-100' : 'pointer-events-none -translate-y-3 opacity-0'
         )}
       >
-        <span className="block origin-top scale-[0.44]">
+        <span className="block origin-top-right scale-[0.44]">
           <PhoneFrame catalog={catalog} screen="catalog" />
         </span>
       </button>

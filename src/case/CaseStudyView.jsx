@@ -195,7 +195,11 @@ function Beat({ screen, eyebrow, title, first, children }) {
       {eyebrow && (
         <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-primary">{eyebrow}</p>
       )}
-      {title && <h2 className="mb-5 text-2xl font-bold sm:text-3xl">{title}</h2>}
+      {title && (
+        <h2 data-case-title className="mb-5 text-2xl font-bold sm:text-3xl">
+          {title}
+        </h2>
+      )}
       <div className="text-muted-foreground [&_p]:leading-relaxed">{children}</div>
     </section>
   )
