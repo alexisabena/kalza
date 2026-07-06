@@ -23,6 +23,7 @@ import { SettingsScreen } from '@/screens/SettingsScreen'
 import { CheckoutScreen } from '@/screens/CheckoutScreen'
 import { AdminApp } from '@/admin/AdminApp'
 import { CaseStudyPage } from '@/case/CaseStudyPage'
+import { StoryPage } from '@/case/StoryPage'
 
 // Home by profile: buyer = catalog, retailer = dashboard of shares.
 // The wholesaler is no longer a mobile profile — he has his own desktop
@@ -87,7 +88,7 @@ function MobileApp() {
   // device mode (FRAME) and the change animates. (Studio standard — see
   // portfolio-framework-spec.md › Locked Decision #5 + §F.)
   return (
-    <div className={onDesktop ? 'flex min-h-dvh cursor-none items-center justify-center bg-neutral-900 p-6' : ''}>
+    <div className={onDesktop ? 'flex min-h-dvh cursor-none items-center justify-center bg-foreground p-6' : ''}>
       {onDesktop && (
         <>
           {/* Blurred ambient backdrop — the device sits on a stage. Crossfades
@@ -98,14 +99,14 @@ function MobileApp() {
               className="size-full scale-110 bg-cover bg-center blur-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700"
               style={{ backgroundImage: `url(${backdrop})` }}
             />
-            <div className="absolute inset-0 bg-neutral-950/45" />
+            <div className="absolute inset-0 bg-foreground/45" />
           </div>
 
           {/* Back to the case study (left) + device-mode toggle (right) */}
           <Link
             to="/"
             aria-label={t.caseStudy}
-            className="fixed left-6 top-6 z-[60] flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur transition-colors hover:bg-black/60"
+            className="fixed left-6 top-6 z-[60] flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-foreground/40 px-4 py-2 text-sm font-medium text-primary-foreground/90 backdrop-blur transition-colors hover:bg-foreground/60"
           >
             <ArrowLeft className="size-4" aria-hidden="true" />
             {t.caseStudy}
@@ -120,7 +121,7 @@ function MobileApp() {
       <div
         className={
           onDesktop
-            ? `relative mx-auto min-h-0 overflow-hidden border-neutral-900 bg-background shadow-2xl [transform:translateZ(0)] motion-safe:transition-[width,height,border-radius] motion-safe:[transition-duration:var(--dur-frame)] motion-safe:[transition-timing-function:var(--ease-frame)] ${FRAME[mode]}`
+            ? `relative mx-auto min-h-0 overflow-hidden border-foreground bg-background shadow-2xl [transform:translateZ(0)] motion-safe:transition-[width,height,border-radius] motion-safe:[transition-duration:var(--dur-frame)] motion-safe:[transition-timing-function:var(--ease-frame)] ${FRAME[mode]}`
             : 'relative mx-auto min-h-dvh w-full max-w-md bg-background tablet-p:max-w-none tablet-l:max-w-none'
         }
       >
@@ -162,6 +163,7 @@ function App() {
     <Routes>
       <Route path="/admin/*" element={<AdminApp />} />
       <Route path="/" element={<CaseStudyPage />} />
+      <Route path="/story" element={<StoryPage />} />
       <Route path="/*" element={<MobileApp />} />
     </Routes>
   )

@@ -1,14 +1,13 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { LanguageProvider, useLang } from '@/case/LanguageContext'
-import { CaseStudyView } from '@/case/CaseStudyView'
+import { StoryView } from '@/case/StoryView'
 import { PortfolioHeader } from '@/case/PortfolioHeader'
 
-// Case study is its own page — no client-side view switch. "The story" lives
-// at its own route (StoryPage) and is reached via a plain nav link, so each
-// is a real page with its own URL and scroll lifecycle, not a tab.
-export function CaseStudyPage() {
+// The story's own page/route — see CaseStudyPage for why this isn't a
+// client-side view switch.
+export function StoryPage() {
   useEffect(() => {
     document.documentElement.removeAttribute('data-theme')
   }, [])
@@ -28,14 +27,14 @@ function Template() {
       <PortfolioHeader
         navLink={
           <Link
-            to="/story"
+            to="/"
             className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
-            {t.nav.tellStory} <ArrowRight className="size-4" aria-hidden="true" />
+            <ArrowLeft className="size-4" aria-hidden="true" /> {t.nav.backToCase}
           </Link>
         }
       />
-      <CaseStudyView />
+      <StoryView />
     </div>
   )
 }

@@ -4,10 +4,10 @@
 
 export const content = {
   en: {
-    nav: { caseStudy: 'Case study', story: 'The story' },
+    nav: { caseStudy: 'Case study', story: 'The story', tellStory: 'Tell me the story', backToCase: 'Back to case study' },
     hero: {
       eyebrow: 'Case study · Digita Studio',
-      title: 'Kalza — every seller’s own storefront',
+      title: 'Kalza: every seller’s own storefront',
       lead: 'A legacy shoe manufacturer in Jalisco sold through a nationwide network of catalog resellers. When the pandemic made the paper catalog impossible, we digitalized their sales model without tearing the social fabric that made it work.',
       ctaApp: 'Open the app',
       ctaAdmin: 'Back-office',
@@ -17,25 +17,25 @@ export const content = {
       role: 'Design + build',
       stackLabel: 'Stack',
       stack: 'React · Vite · Zustand',
-      themeHint: 'Switch catalog — the whole app re-brands:',
+      themeHint: 'Switch catalog and the whole app re-brands:',
     },
     reto: {
       eyebrow: 'The challenge',
       title: 'A social model, suddenly impossible',
-      body: 'The paper catalog was never just a brochure — it was an excuse to knock on a door, sit in a friend’s kitchen and talk. Sellers built their income on that relationship. The pandemic cut it overnight. Moving the sale online without making it cold or corporate was the real design problem.',
+      body: 'The paper catalog was never just a brochure. It was an excuse to knock on a door, sit in a friend’s kitchen and talk. Sellers built their income on that relationship. The pandemic cut it overnight. Moving the sale online without making it cold or corporate was the real design problem.',
     },
     solucion: {
       eyebrow: 'The solution',
       title: 'An app that is her store, not the brand’s',
       cards: [
-        { title: 'Referral link, no account', body: 'She shares a personal link with each client. No email, no password — the phone is the identity. The lowest possible friction.' },
+        { title: 'Referral link, no account', body: 'She shares a personal link with each client. No email, no password. The phone is the identity. The lowest possible friction.' },
         { title: 'Multi-step confirmation', body: 'The client reserves, the wholesaler confirms and sets stock aside, the client pays within a window. Double confirmation formalizes the informal sale without feeling rigid.' },
-        { title: 'The catalog as an event', body: 'Each new season is lived as an event, not a content update — recreating the excitement of the paper catalog.' },
+        { title: 'The catalog as an event', body: 'Each new season is lived as an event, not a content update, recreating the excitement of the paper catalog.' },
       ],
     },
     theming: {
       eyebrow: 'The technical achievement',
-      title: 'One app, many brands — the theme switches at runtime',
+      title: 'One app, many brands: the theme switches at runtime',
       body: 'Kalza distributes catalogs from several brands, each with its own identity. Selecting a catalog sets data-theme on the root and the CSS cascade re-brands the whole app: color, radius and typography. Zero color logic in JS, zero flicker.',
       themes: {
         'cat-001': 'Warm, close, trustworthy',
@@ -54,12 +54,12 @@ export const content = {
       eyebrow: 'The architecture',
       title: 'Two surfaces, two form factors',
       app: {
-        title: 'Mobile app — client + seller',
+        title: 'Mobile app: client + seller',
         body: 'The face of the product. The client browses and reserves; the seller shares catalogs, tracks her clients’ orders and sees her income. One seller among many across the country.',
         cta: 'Open the app',
       },
       admin: {
-        title: 'Back-office — wholesaler',
+        title: 'Back-office: wholesaler',
         body: 'A desktop run by staff, with a log of who approved each order. Orders, income, sellers, buyers and inventory for the whole network, with per-color item capture.',
         cta: 'Open the back-office',
       },
@@ -70,24 +70,24 @@ export const content = {
     },
     qr: {
       title: 'Try it on your phone',
-      hint: 'Scan with your camera to open the live app on your phone — it’s built mobile-first.',
+      hint: 'Scan with your camera to open the live app on your phone. It’s built mobile-first.',
       openHere: 'Open in this browser',
     },
     story: {
       eyebrow: 'The story',
       title: 'A paper catalog, a conversation',
       intro: [
-        'During Covid, our world changed but our interactions needed more time. This project is a recreation of a real, ambitious project that set out to reframe selling by paper catalog — respecting the place it held in our interactions.',
+        'During Covid, our world changed but our interactions needed more time. This project is a recreation of a real, ambitious project that set out to reframe selling by paper catalog, respecting the place it held in our interactions.',
         'For many Mexican women the catalog is a tool to socialize, a way to support their household income, and a way to stay in touch with the people close to them. We needed to strengthen those relationships and connections while providing stability in uncertain times.',
-        'This is how a paper catalog became a communication channel — without losing the conversation that made it work.',
+        'This is how a paper catalog became a communication channel, without losing the conversation that made it work.',
       ],
       beats: [
         { title: 'Rosa shares her link', body: 'She sends it on WhatsApp like she used to hand over the catalog. Her client opens a store that feels like Rosa’s.' },
-        { title: 'Her client places the order', body: 'The client browses and reserves — and the order lands on Rosa’s phone at the same moment.' },
+        { title: 'Her client places the order', body: 'The client browses and reserves, and the order lands on Rosa’s phone at the same moment.' },
         { title: 'The wholesaler confirms', body: 'In the back-office, staff sees the new order, checks the warehouse and sets the stock aside. Rosa sees it update.' },
-        { title: 'The client commits to pay', body: 'A payment window opens on the client’s phone. She pays, the order moves forward — protecting Rosa, who fronted it.' },
+        { title: 'The client commits to pay', body: 'A payment window opens on the client’s phone. She pays, the order moves forward, protecting Rosa, who fronted it.' },
       ],
-      close: { title: 'The visit, now digital', body: 'The physical catalog came back too. Both live side by side — because the point was never paper or pixels. It was Rosa, and the door she knocks on.' },
+      close: { title: 'The visit, now digital', body: 'The physical catalog came back too. Both live side by side, because the point was never paper or pixels. It was Rosa, and the door she knocks on.' },
     },
     phone: {
       reserve: 'Reserve',
@@ -116,10 +116,10 @@ export const content = {
   },
 
   es: {
-    nav: { caseStudy: 'Caso de estudio', story: 'La historia' },
+    nav: { caseStudy: 'Caso de estudio', story: 'La historia', tellStory: 'Cuéntame la historia', backToCase: 'Volver al caso de estudio' },
     hero: {
       eyebrow: 'Caso de estudio · Digita Studio',
-      title: 'Kalza — la tienda personal de cada vendedora',
+      title: 'Kalza: la tienda personal de cada vendedora',
       lead: 'Una fabricante de calzado de Jalisco vendía por catálogo físico a través de una red nacional de vendedoras. Cuando la pandemia volvió imposible el catálogo de papel, digitalizamos su modelo de venta sin romper el tejido social que lo hacía funcionar.',
       ctaApp: 'Ver la app',
       ctaAdmin: 'Back-office',
@@ -129,7 +129,7 @@ export const content = {
       role: 'Diseño + desarrollo',
       stackLabel: 'Stack',
       stack: 'React · Vite · Zustand',
-      themeHint: 'Cambia de catálogo — toda la app se re-marca:',
+      themeHint: 'Cambia de catálogo y toda la app se re-marca:',
     },
     reto: {
       eyebrow: 'El reto',
@@ -140,14 +140,14 @@ export const content = {
       eyebrow: 'La solución',
       title: 'Una app que es la tienda de ella, no la de la marca',
       cards: [
-        { title: 'Link de referido, sin cuenta', body: 'Comparte un enlace personal con cada clienta. Sin correo, sin contraseña — el teléfono es la identidad. La fricción más baja posible.' },
+        { title: 'Link de referido, sin cuenta', body: 'Comparte un enlace personal con cada clienta. Sin correo, sin contraseña. El teléfono es la identidad. La fricción más baja posible.' },
         { title: 'Confirmación en varios pasos', body: 'La clienta aparta, el mayorista confirma y separa stock, la clienta paga dentro de una ventana. La doble confirmación formaliza la venta informal sin sentirse rígida.' },
-        { title: 'El catálogo como evento', body: 'Cada temporada nueva se vive como un acontecimiento, no como una actualización de contenido — replicando la emoción del catálogo de papel.' },
+        { title: 'El catálogo como evento', body: 'Cada temporada nueva se vive como un acontecimiento, no como una actualización de contenido, replicando la emoción del catálogo de papel.' },
       ],
     },
     theming: {
       eyebrow: 'El logro técnico',
-      title: 'Una app, varias marcas — el tema cambia en tiempo real',
+      title: 'Una app, varias marcas: el tema cambia en tiempo real',
       body: 'Kalza distribuye catálogos de varias marcas, cada una con su identidad. Al seleccionar un catálogo, se fija data-theme en la raíz y la cascada de CSS re-marca toda la app: color, radio y tipografía. Cero lógica de color en JS, cero parpadeo.',
       themes: {
         'cat-001': 'Cálido, cercano, de confianza',
@@ -166,12 +166,12 @@ export const content = {
       eyebrow: 'La arquitectura',
       title: 'Dos superficies, dos formatos',
       app: {
-        title: 'App móvil — clienta + vendedora',
+        title: 'App móvil: clienta + vendedora',
         body: 'La cara del producto. La clienta navega y aparta; la vendedora comparte catálogos, sigue los pedidos de sus clientas y ve su ingreso. Una vendedora es una de muchas en todo el país.',
         cta: 'Abrir la app',
       },
       admin: {
-        title: 'Back-office — mayorista',
+        title: 'Back-office: mayorista',
         body: 'Un escritorio operado por staff, con bitácora de quién aprobó cada pedido. Pedidos, ingresos, vendedoras, compradoras e inventario de toda la red, con captura de artículos por color.',
         cta: 'Abrir el back-office',
       },
@@ -182,24 +182,24 @@ export const content = {
     },
     qr: {
       title: 'Pruébalo en tu teléfono',
-      hint: 'Escanea con tu cámara para abrir la app en tu teléfono — está hecha mobile-first.',
+      hint: 'Escanea con tu cámara para abrir la app en tu teléfono. Está hecha mobile-first.',
       openHere: 'Abrir en este navegador',
     },
     story: {
       eyebrow: 'La historia',
       title: 'Un catálogo de papel, una conversación',
       intro: [
-        'Durante el Covid, nuestro mundo cambió pero nuestras interacciones necesitaban más tiempo. Este proyecto es la recreación de un proyecto real y ambicioso que buscó replantear la venta por catálogo de papel — respetando el lugar que tenía en nuestras interacciones.',
+        'Durante el Covid, nuestro mundo cambió pero nuestras interacciones necesitaban más tiempo. Este proyecto es la recreación de un proyecto real y ambicioso que buscó replantear la venta por catálogo de papel, respetando el lugar que tenía en nuestras interacciones.',
         'Para muchas mujeres mexicanas el catálogo es una herramienta para socializar, una forma de apoyar el ingreso del hogar y de mantenerse en contacto con los suyos. Necesitábamos fortalecer esas relaciones y vínculos mientras brindábamos estabilidad en tiempos de incertidumbre.',
-        'Así un catálogo de papel se volvió un canal de comunicación — sin perder la conversación que lo hacía funcionar.',
+        'Así un catálogo de papel se volvió un canal de comunicación, sin perder la conversación que lo hacía funcionar.',
       ],
       beats: [
         { title: 'Rosa comparte su enlace', body: 'Lo manda por WhatsApp como antes entregaba el catálogo. Su clienta abre una tienda que se siente de Rosa.' },
-        { title: 'Su clienta hace el pedido', body: 'La clienta navega y aparta — y el pedido aparece en el teléfono de Rosa al mismo tiempo.' },
+        { title: 'Su clienta hace el pedido', body: 'La clienta navega y aparta, y el pedido aparece en el teléfono de Rosa al mismo tiempo.' },
         { title: 'El mayorista confirma', body: 'En el back-office, el staff ve el nuevo pedido, revisa bodega y separa el stock. Rosa lo ve actualizarse.' },
-        { title: 'La clienta se compromete a pagar', body: 'Se abre una ventana de pago en el teléfono de la clienta. Paga, el pedido avanza — protegiendo a Rosa, que lo financió.' },
+        { title: 'La clienta se compromete a pagar', body: 'Se abre una ventana de pago en el teléfono de la clienta. Paga, el pedido avanza, protegiendo a Rosa, que lo financió.' },
       ],
-      close: { title: 'La visita, ahora digital', body: 'El catálogo físico también regresó. Ambos conviven — porque el punto nunca fue el papel ni los pixeles. Era Rosa, y la puerta que toca.' },
+      close: { title: 'La visita, ahora digital', body: 'El catálogo físico también regresó. Ambos conviven porque el punto nunca fue el papel ni los pixeles. Era Rosa, y la puerta que toca.' },
     },
     phone: {
       reserve: 'Apartar',
