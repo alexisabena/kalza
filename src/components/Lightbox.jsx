@@ -56,7 +56,7 @@ export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-label={`Galería: ${alt}`}
-      className="fixed inset-y-0 left-0 right-0 z-50 mx-auto max-w-md overflow-hidden bg-black"
+      className="fixed inset-y-0 left-0 right-0 z-50 mx-auto max-w-md overflow-hidden bg-foreground"
     >
       {/* Theater glow — current photo, blown up + blurred, fades in on swipe. */}
       <div
@@ -65,15 +65,15 @@ export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
         style={{ backgroundImage: `url(${images[active]})` }}
         className="absolute inset-0 scale-125 bg-cover bg-center blur-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500"
       />
-      <div aria-hidden="true" className="absolute inset-0 bg-black/45" />
+      <div aria-hidden="true" className="absolute inset-0 bg-foreground/45" />
       {/* Keep the dots legible against the lighter backdrop. */}
-      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-foreground/40 to-transparent" />
 
       <button
         type="button"
         onClick={onClose}
         aria-label="Cerrar galería"
-        className="absolute right-3 top-3 z-20 flex size-11 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur"
+        className="absolute right-3 top-3 z-20 flex size-11 items-center justify-center rounded-full bg-foreground/45 text-primary-foreground backdrop-blur"
       >
         <X className="size-6" aria-hidden="true" />
       </button>
@@ -106,7 +106,7 @@ export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
         >
-          <span className="swipe-hint size-10 rounded-full border-2 border-white/70 bg-white/25 backdrop-blur-sm" />
+          <span className="swipe-hint size-10 rounded-full border-2 border-primary-foreground/70 bg-primary-foreground/25 backdrop-blur-sm" />
         </div>
       )}
 
@@ -115,7 +115,7 @@ export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
           {images.map((src, i) => (
             <span
               key={src}
-              className={cn('size-1.5 rounded-full bg-white/40 transition-all', i === active && 'w-3 bg-white')}
+              className={cn('size-1.5 rounded-full bg-primary-foreground/40 transition-all', i === active && 'w-3 bg-primary-foreground')}
             />
           ))}
         </div>

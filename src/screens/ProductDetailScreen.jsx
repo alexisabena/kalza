@@ -81,10 +81,10 @@ function Carousel({ images, alt }) {
       {/* Autoplay progress — restarts per slide (keyed by active), hides once the
           viewer takes over. */}
       {slides.length > 1 && auto && !reduced && (
-        <div className="absolute inset-x-0 top-0 h-0.5 bg-white/20">
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-primary-foreground/20">
           <div
             key={active}
-            className="carousel-progress h-full bg-white/80"
+            className="carousel-progress h-full bg-primary-foreground/80"
             style={{ animationDuration: `${AUTOPLAY_MS}ms` }}
           />
         </div>
@@ -105,8 +105,8 @@ function Carousel({ images, alt }) {
             <span
               key={src}
               className={cn(
-                'size-1.5 rounded-full bg-white/50 transition-all',
-                i === active && 'w-3 bg-white'
+                'size-1.5 rounded-full bg-primary-foreground/50 transition-all',
+                i === active && 'w-3 bg-primary-foreground'
               )}
             />
           ))}

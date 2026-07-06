@@ -21,7 +21,7 @@ export function DeviceModeToggle({ mode, setMode }) {
     <div
       role="group"
       aria-label={t.deviceMode.label}
-      className="fixed right-6 top-6 z-[60] flex items-center gap-1 rounded-full border border-white/20 bg-black/40 p-1 backdrop-blur"
+      className="fixed right-6 top-6 z-[60] flex items-center gap-1 rounded-full border border-primary-foreground/20 bg-foreground/40 p-1 backdrop-blur"
     >
       {MODES.map(({ id, icon: Icon, rotate, key }) => (
         <button
@@ -32,8 +32,8 @@ export function DeviceModeToggle({ mode, setMode }) {
           aria-label={t.deviceMode[key]}
           title={t.deviceMode[key]}
           className={cn(
-            'flex size-9 items-center justify-center rounded-full text-white/75 transition-colors',
-            mode === id ? 'bg-white/20 text-white' : 'hover:bg-white/10'
+            'flex size-9 items-center justify-center rounded-full text-primary-foreground/75 transition-colors',
+            mode === id ? 'bg-primary-foreground/20 text-primary-foreground' : 'hover:bg-primary-foreground/10'
           )}
         >
           <Icon className={cn('size-4', rotate && 'rotate-90')} aria-hidden="true" />

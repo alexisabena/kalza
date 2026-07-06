@@ -18,6 +18,10 @@ export function GatewayLogo({ id, className }) {
   return (
     <span
       className={cn(
+        // bg-white is a functional exception, not a token gap: payment-brand
+        // marks (Mercado Pago, PayPal, etc.) ship on white plates regardless of
+        // the active catalog theme, same rationale as the QR code in QrAppModal.
+        // eslint-disable-next-line no-restricted-syntax
         'flex h-9 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-white p-1.5',
         className
       )}
@@ -25,7 +29,7 @@ export function GatewayLogo({ id, className }) {
       {src ? (
         <img src={src} alt="" aria-hidden="true" className="max-h-full max-w-full object-contain" />
       ) : (
-        <CreditCard className="size-5 text-neutral-700" aria-hidden="true" />
+        <CreditCard className="size-5 text-muted-foreground" aria-hidden="true" />
       )}
     </span>
   )

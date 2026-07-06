@@ -91,14 +91,14 @@ function MockCard({ product, start }) {
       <div
         style={{ transitionDelay: `${delay}ms` }}
         className={cn(
-          'pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-1.5 pt-6',
+          'pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/70 via-foreground/30 to-transparent p-1.5 pt-6',
           'opacity-0 motion-safe:translate-y-1 motion-safe:transition-[opacity,transform] motion-safe:duration-500 motion-safe:ease-out',
           start && 'opacity-100 motion-safe:translate-y-0'
         )}
         aria-hidden={!start}
       >
-        <p className="truncate text-[9px] font-medium text-white/90">{product.name}</p>
-        <p className="text-[10px] font-semibold text-white">{mxn(product.price)}</p>
+        <p className="truncate text-[9px] font-medium text-primary-foreground/90">{product.name}</p>
+        <p className="text-[10px] font-semibold text-primary-foreground">{mxn(product.price)}</p>
       </div>
     </div>
   )

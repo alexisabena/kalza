@@ -55,7 +55,7 @@ function Device({ label, active = true, radius = '2.4rem', children }) {
           aria-hidden="true"
           style={{ borderRadius: radius }}
           className={cn(
-            'pointer-events-none absolute inset-0 bg-white motion-safe:transition-opacity motion-safe:duration-500',
+            'pointer-events-none absolute inset-0 bg-background motion-safe:transition-opacity motion-safe:duration-500',
             active ? 'opacity-0' : 'opacity-60'
           )}
         />

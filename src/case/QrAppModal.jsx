@@ -61,6 +61,8 @@ export function QrAppModal({ onClose }) {
           <div className="text-center sm:text-left">
             <h2 className="text-xl font-bold">{t.qr.title}</h2>
             <p className="mt-2 text-sm text-muted-foreground">{t.qr.hint}</p>
+            {/* bg-white is part of the same QR contrast exception noted above. */}
+            {/* eslint-disable-next-line no-restricted-syntax */}
             <div className="mt-4 inline-block rounded-xl border bg-white p-3">
               <Qr value={url} />
             </div>
