@@ -1,11 +1,9 @@
 import { Link } from 'react-router-dom'
 import { X, ArrowRight } from 'lucide-react'
 import qrcode from 'qrcode-generator'
-import { catalogs } from '@/data/catalogs'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { useLang } from '@/case/LanguageContext'
-import { PhoneFrame } from '@/case/PhoneScreens'
 
 // Inline SVG QR (no canvas). Black on white for reliable scanning — a
 // functional exception to the no-hardcoded-color rule.
@@ -40,7 +38,7 @@ export function QrAppModal({ onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={t.qr.title}
-        className="relative z-10 w-full max-w-xl overflow-hidden rounded-2xl border bg-background shadow-xl"
+        className="relative z-10 w-full max-w-sm overflow-hidden rounded-2xl border bg-background shadow-xl"
       >
         <button
           type="button"
@@ -51,26 +49,18 @@ export function QrAppModal({ onClose }) {
           <X className="size-5" aria-hidden="true" />
         </button>
 
-        <div className="grid items-center gap-6 p-6 sm:grid-cols-2 sm:p-8">
-          {/* phone mockup */}
-          <div className="flex justify-center">
-            <PhoneFrame catalog={catalogs[0]} screen="catalog" className="scale-90 sm:scale-100" />
+        <div className="p-6 text-center sm:p-8">
+          <h2 className="text-xl font-bold">{t.qr.title}</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{t.qr.hint}</p>
+          {/* bg-white is part of the same QR contrast exception noted above. */}
+          {/* eslint-disable-next-line no-restricted-syntax */}
+          <div className="mt-4 inline-block rounded-xl border bg-white p-3">
+            <Qr value={url} />
           </div>
-
-          {/* QR + actions */}
-          <div className="text-center sm:text-left">
-            <h2 className="text-xl font-bold">{t.qr.title}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{t.qr.hint}</p>
-            {/* bg-white is part of the same QR contrast exception noted above. */}
-            {/* eslint-disable-next-line no-restricted-syntax */}
-            <div className="mt-4 inline-block rounded-xl border bg-white p-3">
-              <Qr value={url} />
-            </div>
-            <p className="mt-3 truncate font-mono text-xs text-muted-foreground">{url}</p>
-            <Link to="/app" className={cn(buttonVariants({ variant: 'outline' }), 'mt-4 px-4')}>
-              {t.qr.openHere} <ArrowRight aria-hidden="true" />
-            </Link>
-          </div>
+          <p className="mt-3 truncate font-mono text-xs text-muted-foreground">{url}</p>
+          <Link to="/app" className={cn(buttonVariants({ variant: 'outline' }), 'mt-4 px-4')}>
+            {t.qr.openHere} <ArrowRight aria-hidden="true" />
+          </Link>
         </div>
       </div>
     </div>
