@@ -22,7 +22,7 @@ const AUTOPLAY_MS = 3500
 // first manual swipe/scroll stops autoplay for good (the viewer took over). A
 // progress bar tracks the timer per slide. Tapping a photo opens the lightbox.
 // Slides whose image file doesn't exist yet are dropped.
-function Carousel({ images, alt }) {
+function Carousel({ images, alt, t }) {
   const [failed, setFailed] = useState(() => new Set())
   const [auto, setAuto] = useState(true)
   const [lightboxAt, setLightboxAt] = useState(null)
@@ -64,12 +64,12 @@ function Carousel({ images, alt }) {
             key={i}
             type="button"
             onClick={() => setLightboxAt(active)}
-            aria-label={`Ampliar foto de ${alt}`}
+            aria-label={t.product.enlargePhoto(alt)}
             className="w-full shrink-0 snap-center cursor-zoom-in tablet-l:h-full"
           >
             <img
               src={src}
-              alt={`${alt} — foto ${i + 1}`}
+              alt={t.product.photoAlt(alt, i + 1)}
               onError={() => markFailed(src)}
               draggable={false}
               className="aspect-[4/5] w-full select-none bg-muted object-cover tablet-l:aspect-auto tablet-l:h-full"
@@ -149,7 +149,7 @@ export function ProductDetailScreen() {
   if (!product) {
     return (
       <div className="p-4">
-        <p className="text-muted-foreground">Este producto ya no está disponible.</p>
+        <p className="text-muted-foreground">{t.product.notAvailable}</p>
       </div>
     )
   }
@@ -167,7 +167,7 @@ export function ProductDetailScreen() {
     // (§5.3). Phone / tablet-p keep the single-column stack (fluid scale only).
     <div className="pb-24 tablet-l:grid tablet-l:h-[calc(100dvh-3.5rem)] tablet-l:grid-cols-2 tablet-l:overflow-hidden tablet-l:pb-0">
       <div className="tablet-l:h-full tablet-l:overflow-hidden">
-        <Carousel images={product.images} alt={product.name} />
+        <Carousel images={product.images} alt={product.name} t={t} />
       </div>
 
       {/* Right column on tablet-l: its own scroller with the CTA pinned to its
@@ -213,9 +213,9 @@ export function ProductDetailScreen() {
           {product.description}
         </p>
 
-        <section aria-label="Color">
+        <section aria-label={t.product.colorLabel}>
           <h2 className="mb-2 text-sm font-medium text-muted-foreground">
-            Color: <span className="text-foreground">{colors[colorId].name}</span>
+            {t.product.colorLabel}: <span className="text-foreground">{colors[colorId].name}</span>
           </h2>
           <div className="flex gap-3">
             {product.colorIds.map((cid) => (
@@ -235,8 +235,8 @@ export function ProductDetailScreen() {
           </div>
         </section>
 
-        <section aria-label="Talla">
-          <h2 className="mb-2 text-sm font-medium text-muted-foreground">Talla (MX)</h2>
+        <section aria-label={t.product.sizeLabel}>
+          <h2 className="mb-2 text-sm font-medium text-muted-foreground">{t.product.sizeLabel}</h2>
           <div className="flex flex-wrap gap-2">
             {run.map((s) => {
               const out = getStock(product.id, colorId, s) === 0
@@ -260,7 +260,7 @@ export function ProductDetailScreen() {
           </div>
           {size && (
             <p className="mt-2 text-sm text-muted-foreground">
-              {getStock(product.id, colorId, size)} disponibles en {colors[colorId].name}
+              {t.product.stockAvailable(getStock(product.id, colorId, size), colors[colorId].name)}
             </p>
           )}
         </section>
@@ -273,7 +273,7 @@ export function ProductDetailScreen() {
       <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] tablet-l:static tablet-l:mx-0 tablet-l:max-w-none">
         {role === 'retailer' ? (
           <Button className="w-full" onClick={() => navigate(`/compartir?producto=${product.id}`)}>
-            <Share2 aria-hidden="true" /> Compartir con clienta
+            <Share2 aria-hidden="true" /> {t.product.shareWithClient}
           </Button>
         ) : (
           <Button
@@ -284,12 +284,12 @@ export function ProductDetailScreen() {
           >
             {added ? (
               <>
-                <Check aria-hidden="true" /> Agregado al carrito
+                <Check aria-hidden="true" /> {t.product.addedToCart}
               </>
             ) : size ? (
-              'Agregar al carrito'
+              t.product.addToCart
             ) : (
-              'Elige tu talla'
+              t.product.chooseSize
             )}
           </Button>
         )}

@@ -11,6 +11,7 @@ import { ProductImage } from '@/components/ProductImage'
 import { SuccessCheck } from '@/components/SuccessCheck'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useT } from '@/i18n'
 
 const mxn = (n) => `$${n.toLocaleString('es-MX')}`
 
@@ -19,7 +20,7 @@ const SHIPPING = 99
 const FREE_SHIPPING_FROM = 1499
 const IVA_RATE = 0.16
 
-function CartLine({ item, onRemove }) {
+function CartLine({ item, onRemove, t }) {
   const product = getProduct(item.productId)
   if (!product) return null
 
@@ -33,15 +34,15 @@ function CartLine({ item, onRemove }) {
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{product.name}</p>
         <p className="text-sm text-muted-foreground">
-          {colors[item.colorId].name} · Talla {item.size}
-          {item.qty > 1 && ` · ${item.qty} pzas`}
+          {colors[item.colorId].name} · {t.cart.size} {item.size}
+          {item.qty > 1 && ` · ${t.cart.pieces(item.qty)}`}
         </p>
       </div>
       <p className="font-semibold text-primary">{mxn(product.price * item.qty)}</p>
       <button
         type="button"
         onClick={onRemove}
-        aria-label={`Quitar ${product.name}`}
+        aria-label={t.cart.remove(product.name)}
         className="flex size-9 shrink-0 items-center justify-center text-muted-foreground"
       >
         <X className="size-4" aria-hidden="true" />
@@ -56,6 +57,7 @@ export function CartScreen() {
   const buyerClientId = useSessionStore((s) => s.buyerClientId)
   const navigate = useNavigate()
   const [placed, setPlaced] = useState(false)
+  const t = useT()
 
   // Step 1 of the double confirmation: the clienta confirms her intent.
   // The vendedora confirms on her side before the order is real.
@@ -79,9 +81,9 @@ export function CartScreen() {
     return (
       <div className="flex flex-col items-center gap-4 px-4 py-16 text-center">
         <ShoppingBag className="size-10 text-muted-foreground/50" aria-hidden="true" />
-        <p className="text-muted-foreground">Tu carrito está vacío.</p>
+        <p className="text-muted-foreground">{t.cart.empty}</p>
         <Link to="/app" className={cn(buttonVariants(), 'px-6')}>
-          Ver el catálogo
+          {t.cart.viewCatalog}
         </Link>
       </div>
     )
@@ -111,7 +113,7 @@ export function CartScreen() {
             <span className="absolute size-16 rounded-full bg-success/30 success-burst" aria-hidden="true" />
             <SuccessCheck size={64} />
           </div>
-          <p className="text-sm font-semibold text-success">Pedido apartado</p>
+          <p className="text-sm font-semibold text-success">{t.cart.orderPlaced}</p>
         </div>
       )}
 
@@ -123,7 +125,7 @@ export function CartScreen() {
           </h2>
           <ul className="divide-y">
             {lines.map((item) => (
-              <CartLine key={item.key} item={item} onRemove={() => remove(item.key)} />
+              <CartLine key={item.key} item={item} onRemove={() => remove(item.key)} t={t} />
             ))}
           </ul>
         </section>
@@ -131,40 +133,40 @@ export function CartScreen() {
 
       {/* Cart summary */}
       <div className="flex items-center justify-between border-t pt-4">
-        <span className="text-lg font-semibold">Total</span>
+        <span className="text-lg font-semibold">{t.cart.total}</span>
         <span className="text-2xl font-bold text-primary">{mxn(total)}</span>
       </div>
 
       {/* Purchase details — revealed as you scroll past the summary */}
-      <section aria-label="Detalles de compra" className="rounded-xl bg-muted p-4">
-        <h2 className="mb-3 font-semibold">Detalles de compra</h2>
+      <section aria-label={t.cart.purchaseDetails} className="rounded-xl bg-muted p-4">
+        <h2 className="mb-3 font-semibold">{t.cart.purchaseDetails}</h2>
         <dl className="flex flex-col gap-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Subtotal</dt>
+            <dt className="text-muted-foreground">{t.cart.subtotal}</dt>
             <dd>{mxn(subtotal)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Envío</dt>
-            <dd>{shipping === 0 ? 'Gratis' : mxn(shipping)}</dd>
+            <dt className="text-muted-foreground">{t.cart.shipping}</dt>
+            <dd>{shipping === 0 ? t.cart.free : mxn(shipping)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">IVA incluido (16%)</dt>
+            <dt className="text-muted-foreground">{t.cart.ivaIncluded}</dt>
             <dd>{mxn(ivaIncluded)}</dd>
           </div>
           <div className="mt-1 flex justify-between border-t pt-2 text-base font-semibold">
-            <dt>Total a pagar</dt>
+            <dt>{t.cart.totalToPay}</dt>
             <dd className="text-primary">{mxn(total)}</dd>
           </div>
         </dl>
         {shipping > 0 && (
           <p className="mt-2 text-xs text-muted-foreground">
-            Envío gratis a partir de {mxn(FREE_SHIPPING_FROM)}
+            {t.cart.freeShippingFrom(mxn(FREE_SHIPPING_FROM))}
           </p>
         )}
 
         <div className="mt-4 flex flex-col gap-2">
-          <Button className="w-full" onClick={handlePlace}>Apartar pedido</Button>
-          <Button variant="secondary" className="w-full">Pagar</Button>
+          <Button className="w-full" onClick={handlePlace}>{t.cart.placeOrder}</Button>
+          <Button variant="secondary" className="w-full">{t.cart.pay}</Button>
         </div>
       </section>
     </div>

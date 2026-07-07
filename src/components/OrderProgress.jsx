@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { effectiveStatus } from '@/stores/ordersStore'
+import { useT } from '@/i18n'
 
 // The 5-step order lifecycle as a vertical stepper. ONE source shared by the
 // buyer order detail, the seller order detail, and the portfolio mockups, so the
@@ -10,13 +11,7 @@ import { effectiveStatus } from '@/stores/ordersStore'
 // Driven by effectiveStatus(order). The seller variant reads statusHistory to
 // attribute the staff-approved steps; the buyer variant uses friendly labels and
 // never sees approver names.
-const STEPS = [
-  { id: 'pedido', buyer: 'Pedido realizado', seller: 'Clienta apartó' },
-  { id: 'apartado', buyer: 'Apartado para ti', seller: 'Mayorista confirmó' },
-  { id: 'pagado', buyer: 'Pagado', seller: 'Pagado' },
-  { id: 'recolectado', buyer: 'Recolectado por tu vendedora', seller: 'Recolectado' },
-  { id: 'entregado', buyer: 'Entregado', seller: 'Entregado' },
-]
+const STEP_IDS = ['pedido', 'apartado', 'pagado', 'recolectado', 'entregado']
 
 const formatApproved = (entry) => {
   if (!entry) return null
@@ -30,24 +25,24 @@ const formatApproved = (entry) => {
 }
 
 export function OrderProgress({ order, variant = 'buyer' }) {
+  const t = useT()
   const status = effectiveStatus(order)
+  const steps = STEP_IDS.map((id) => ({ id, ...t.orderProgress.steps[id] }))
 
   if (status === 'vencido') {
     return (
       <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
-        {variant === 'buyer'
-          ? 'El plazo de pago venció y el apartado se liberó. Puedes volver a pedirlo desde el catálogo.'
-          : 'El plazo de pago venció — el apartado se liberó y el pedido se perdió.'}
+        {variant === 'buyer' ? t.orderProgress.expiredBuyer : t.orderProgress.expiredSeller}
       </p>
     )
   }
 
-  const reached = STEPS.findIndex((s) => s.id === status)
+  const reached = steps.findIndex((s) => s.id === status)
   const history = order.statusHistory ?? []
 
   return (
-    <ol className="flex flex-col gap-0" aria-label="Progreso del pedido">
-      {STEPS.map((step, i) => {
+    <ol className="flex flex-col gap-0" aria-label={t.orderProgress.ariaLabel}>
+      {steps.map((step, i) => {
         const done = i <= reached
         // Seller variant surfaces who approved each completed step (audit trail).
         const meta =
@@ -67,7 +62,7 @@ export function OrderProgress({ order, variant = 'buyer' }) {
               >
                 {done ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
               </span>
-              {i < STEPS.length - 1 && (
+              {i < steps.length - 1 && (
                 <span className={cn('h-5 w-0.5', i < reached ? 'bg-primary' : 'bg-border')} />
               )}
             </div>

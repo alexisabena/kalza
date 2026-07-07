@@ -11,6 +11,7 @@ import { ProductImage } from '@/components/ProductImage'
 import { StatusChip } from '@/components/StatusChip'
 import { OrderProgress } from '@/components/OrderProgress'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/i18n'
 
 const mxn = (n) => `$${n.toLocaleString('es-MX')}`
 
@@ -34,11 +35,12 @@ export function OrderDetailScreen() {
   const navigate = useNavigate()
   const order = orders.find((o) => o.id === id)
   const [draft, setDraft] = useState('')
+  const t = useT()
 
   if (!order) {
     return (
       <div className="p-4">
-        <p className="text-muted-foreground">Este pedido ya no está disponible.</p>
+        <p className="text-muted-foreground">{t.orderDetail.notAvailable}</p>
       </div>
     )
   }
@@ -66,7 +68,7 @@ export function OrderDetailScreen() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold">
-            {isBuyer ? 'Mi pedido' : client?.name ?? 'Clienta'}
+            {isBuyer ? t.orderDetail.myOrder : client?.name ?? t.pedidos.client}
           </h1>
           <p className="text-sm text-muted-foreground">{formatDate(order.date)}</p>
         </div>
@@ -78,17 +80,17 @@ export function OrderDetailScreen() {
       {/* Seller waits on the wholesaler, then moves the order physically */}
       {role === 'retailer' && status === 'pedido' && (
         <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
-          Esperando confirmación del mayorista.
+          {t.orderDetail.waitingWholesaler}
         </p>
       )}
       {role === 'retailer' && status === 'pagado' && (
         <Button className="w-full" onClick={() => collect(order.id)}>
-          <Truck aria-hidden="true" /> Marcar como recolectado
+          <Truck aria-hidden="true" /> {t.orderDetail.markCollected}
         </Button>
       )}
       {role === 'retailer' && status === 'recolectado' && (
         <Button className="w-full" onClick={() => deliver(order.id)}>
-          <Check aria-hidden="true" /> Marcar como entregado
+          <Check aria-hidden="true" /> {t.orderDetail.markDelivered}
         </Button>
       )}
 
@@ -96,18 +98,18 @@ export function OrderDetailScreen() {
       {isBuyer && status === 'apartado' && (
         <div className="flex flex-col gap-2 rounded-xl border border-primary bg-primary/5 p-3">
           <p className="text-sm">
-            Tu pedido está apartado. Confirma tu pago antes del{' '}
-            <strong>{formatDeadline(order.payDeadline)}</strong> o el apartado se libera.
+            {t.orderDetail.reservedPrefix}{' '}
+            <strong>{formatDeadline(order.payDeadline)}</strong> {t.orderDetail.reservedSuffix}
           </p>
           <Button className="w-full" onClick={() => navigate(`/pago/${order.id}`)}>
-            <HandCoins aria-hidden="true" /> Pagar {mxn(total)}
+            <HandCoins aria-hidden="true" /> {t.orderDetail.payAmount(mxn(total))}
           </Button>
         </div>
       )}
 
       {isBuyer && <OrderProgress order={order} variant="buyer" />}
 
-      <section aria-label="Artículos">
+      <section aria-label={t.orderDetail.items}>
         <ul className="divide-y">
           {order.items.map((item) => {
             const product = getProduct(item.productId)
@@ -125,8 +127,8 @@ export function OrderDetailScreen() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{product.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {colors[item.colorId].name} · Talla {item.size}
-                    {item.qty > 1 && ` · ${item.qty} pzas`}
+                    {colors[item.colorId].name} · {t.cart.size} {item.size}
+                    {item.qty > 1 && ` · ${t.cart.pieces(item.qty)}`}
                   </p>
                 </div>
                 <p className="font-semibold text-primary">{mxn(product.price * item.qty)}</p>
@@ -135,7 +137,7 @@ export function OrderDetailScreen() {
           })}
         </ul>
         <div className="flex items-center justify-between border-t pt-3">
-          <span className="font-semibold">Total</span>
+          <span className="font-semibold">{t.orderDetail.total}</span>
           <span className="text-xl font-bold text-primary">{mxn(total)}</span>
         </div>
       </section>
@@ -143,11 +145,11 @@ export function OrderDetailScreen() {
       {/* Coordination thread — seller ↔ wholesaler only, never the buyer */}
       {!isBuyer && (
         <>
-          <section aria-label="Coordinación">
-            <h2 className="mb-2 font-semibold">Coordinación con el mayorista</h2>
+          <section aria-label={t.orderDetail.coordination}>
+            <h2 className="mb-2 font-semibold">{t.orderDetail.coordination}</h2>
             {order.messages.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Sin mensajes todavía — acuerden inventario y recolección aquí.
+                {t.orderDetail.noMessages}
               </p>
             ) : (
               <ul className="flex flex-col gap-2">
@@ -171,7 +173,7 @@ export function OrderDetailScreen() {
 
           <div className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-md gap-2 border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <label className="sr-only" htmlFor="order-message">
-              Mensaje
+              {t.orderDetail.messageLabel}
             </label>
             <input
               id="order-message"
@@ -179,10 +181,10 @@ export function OrderDetailScreen() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
-              placeholder="Escribe un mensaje…"
+              placeholder={t.orderDetail.messagePlaceholder}
               className="h-12 min-w-0 flex-1 rounded-md border bg-background px-3 text-base"
             />
-            <Button size="icon" onClick={send} disabled={!draft.trim()} aria-label="Enviar mensaje">
+            <Button size="icon" onClick={send} disabled={!draft.trim()} aria-label={t.orderDetail.send}>
               <Send aria-hidden="true" />
             </Button>
           </div>

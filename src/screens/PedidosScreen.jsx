@@ -5,6 +5,7 @@ import { useClientsStore } from '@/stores/clientsStore'
 import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
 import { getProduct } from '@/data/products'
 import { StatusChip } from '@/components/StatusChip'
+import { useT } from '@/i18n'
 
 const formatDate = (iso) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
@@ -12,7 +13,7 @@ const formatDate = (iso) =>
 const orderTotal = (order) =>
   order.items.reduce((sum, i) => sum + (getProduct(i.productId)?.price ?? 0) * i.qty, 0)
 
-function OrderRow({ order, title, showMessages }) {
+function OrderRow({ order, title, showMessages, t }) {
   const pieces = order.items.reduce((n, i) => n + i.qty, 0)
   return (
     <li>
@@ -23,7 +24,7 @@ function OrderRow({ order, title, showMessages }) {
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{title}</p>
           <p className="text-sm text-muted-foreground">
-            {pieces} {pieces === 1 ? 'artículo' : 'artículos'} ·{' '}
+            {t.pedidos.itemCount(pieces)} ·{' '}
             <span className="font-semibold text-primary">
               ${orderTotal(order).toLocaleString('es-MX')}
             </span>{' '}
@@ -33,7 +34,7 @@ function OrderRow({ order, title, showMessages }) {
         {showMessages && order.messages.length > 0 && (
           <span
             className="flex items-center gap-1 text-sm text-muted-foreground"
-            aria-label={`${order.messages.length} mensajes`}
+            aria-label={t.pedidos.messages(order.messages.length)}
           >
             <MessageCircle className="size-4" aria-hidden="true" />
             {order.messages.length}
@@ -51,7 +52,8 @@ export function PedidosScreen() {
   const { role, buyerClientId, sellerId } = useSessionStore()
   const orders = useOrdersStore((s) => s.orders)
   const clients = useClientsStore((s) => s.clients)
-  const clientName = (id) => clients.find((c) => c.id === id)?.name ?? 'Clienta'
+  const t = useT()
+  const clientName = (id) => clients.find((c) => c.id === id)?.name ?? t.pedidos.client
   const clientSeller = (id) => clients.find((c) => c.id === id)?.sellerId
 
   const isBuyer = role === 'buyer'
@@ -63,24 +65,23 @@ export function PedidosScreen() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold">{isBuyer ? 'Mis pedidos' : 'Pedidos'}</h1>
+      <h1 className="text-2xl font-bold">{isBuyer ? t.pedidos.myOrders : t.pedidos.title}</h1>
       {visible.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          {isBuyer
-            ? 'Aquí verás tus pedidos cuando apartes algo del catálogo.'
-            : 'Aún no hay pedidos activos.'}
+          {isBuyer ? t.pedidos.emptyBuyer : t.pedidos.emptyRetailer}
         </p>
       ) : (
         <ul className="divide-y">
           {visible.map((order) => {
             const pieces = order.items.map((i) => getProduct(i.productId)?.name).filter(Boolean)
-            const title = isBuyer ? pieces[0] ?? 'Pedido' : clientName(order.clientId)
+            const title = isBuyer ? pieces[0] ?? t.pedidos.order : clientName(order.clientId)
             return (
               <OrderRow
                 key={order.id}
                 order={order}
                 title={title}
                 showMessages={!isBuyer}
+                t={t}
               />
             )
           })}
