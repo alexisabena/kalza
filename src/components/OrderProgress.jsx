@@ -41,7 +41,9 @@ export function OrderProgress({ order, variant = 'buyer' }) {
   const history = order.statusHistory ?? []
 
   return (
-    <ol className="flex flex-col gap-0" aria-label={t.orderProgress.ariaLabel}>
+    // px-2 + gap-1 give it room to breathe rather than sitting flush against
+    // the screen edges / stacking flush step-to-step (Alexis, 2026-07-07).
+    <ol className="flex flex-col gap-1 px-2" aria-label={t.orderProgress.ariaLabel}>
       {steps.map((step, i) => {
         const done = i <= reached
         // Seller variant surfaces who approved each completed step (audit trail).
@@ -50,7 +52,7 @@ export function OrderProgress({ order, variant = 'buyer' }) {
             ? formatApproved(history.find((h) => h.status === step.id))
             : null
         return (
-          <li key={step.id} className="flex items-start gap-3">
+          <li key={step.id} className="flex items-start gap-4">
             <div className="flex flex-col items-center">
               <span
                 className={cn(
@@ -63,7 +65,7 @@ export function OrderProgress({ order, variant = 'buyer' }) {
                 {done ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
               </span>
               {i < steps.length - 1 && (
-                <span className={cn('h-5 w-0.5', i < reached ? 'bg-primary' : 'bg-border')} />
+                <span className={cn('h-7 w-0.5', i < reached ? 'bg-primary' : 'bg-border')} />
               )}
             </div>
             <div>

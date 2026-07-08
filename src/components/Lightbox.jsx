@@ -4,12 +4,15 @@ import { cn } from '@/lib/utils'
 import { useDragScroll } from '@/lib/useDragScroll'
 import { useLoopCarousel } from '@/lib/useLoopCarousel'
 
-// A closer view of the product photos, bound to the phone frame (centered
-// max-w-md), not the whole desktop. Swipe between photos; the backdrop is a
-// "theater glow" — the current photo blown up + blurred, spilling light into the
-// frame. The image sits inset with theme-radius corners so it reads as a focused
-// view, not an accidental full-screen zoom. Double-tap the photo (or X / Escape)
-// to leave. A one-time swipe nudge invites the gesture.
+// A closer view of the product photos, bound to the phone/tablet frame (max-w-md
+// on phone; full width of the app column on tablet-p/tablet-l — Alexis,
+// 2026-07-07: capping it at max-w-md on tablet left the backdrop not actually
+// covering the screen, with product-detail content still visible around it).
+// Swipe between photos; the backdrop is a "theater glow" — the current photo
+// blown up + blurred, spilling light into the frame. The image sits inset with
+// theme-radius corners so it reads as a focused view, not an accidental
+// full-screen zoom. Double-tap the photo (or X / Escape) to leave. A one-time
+// swipe nudge invites the gesture.
 export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
   const { ref: trackRef, display, active, onScroll } = useLoopCarousel(images, initialIndex)
   const [hint, setHint] = useState(images.length > 1)
@@ -56,7 +59,7 @@ export function Lightbox({ images, alt, initialIndex = 0, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-label={`Galería: ${alt}`}
-      className="fixed inset-y-0 left-0 right-0 z-50 mx-auto max-w-md overflow-hidden bg-foreground"
+      className="fixed inset-y-0 left-0 right-0 z-50 mx-auto max-w-md overflow-hidden bg-foreground tablet-p:max-w-none tablet-l:max-w-none"
     >
       {/* Theater glow — current photo, blown up + blurred, fades in on swipe. */}
       <div

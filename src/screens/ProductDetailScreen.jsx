@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Check, Share2, ChevronLeft, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore, selectCount } from '@/stores/cartStore'
+import { useCatalogStore } from '@/stores/catalogStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useSharesStore } from '@/stores/sharesStore'
 import { getProduct } from '@/data/products'
@@ -123,6 +124,7 @@ export function ProductDetailScreen() {
   const addToCart = useCartStore((s) => s.add)
   const cartCount = useCartStore(selectCount)
   const role = useSessionStore((s) => s.role)
+  const activeCatalog = useCatalogStore((s) => s.activeCatalog)
   const t = useT()
 
   const [colorId, setColorId] = useState(product?.colorIds[0])
@@ -165,27 +167,40 @@ export function ProductDetailScreen() {
   return (
     // tablet-l: two columns — full-height carousel left, info + CTA right
     // (§5.3). Phone / tablet-p keep the single-column stack (fluid scale only).
-    <div className="pb-24 tablet-l:grid tablet-l:h-[calc(100dvh-3.5rem)] tablet-l:grid-cols-2 tablet-l:overflow-hidden tablet-l:pb-0">
-      <div className="tablet-l:h-full tablet-l:overflow-hidden">
+    // The global TopBar hides itself on this route at tablet-l (TopBar.jsx) so
+    // the carousel can run edge-to-edge. `fixed inset-0` (not h-dvh) so this
+    // binds to the desktop-stage bezel's own containing block like the rest of
+    // the app's fixed chrome (TopBar/Lightbox/FloatingNav) — h-dvh measured the
+    // raw browser viewport instead of the bezel's capped height, which is what
+    // was pushing the CTA below the fold (Alexis, 2026-07-07).
+    <div className="pb-24 tablet-l:fixed tablet-l:inset-0 tablet-l:grid tablet-l:grid-cols-2 tablet-l:overflow-hidden tablet-l:pb-0">
+      <div className="relative tablet-l:h-full tablet-l:overflow-hidden">
+        {/* Back lives ON the image on tablet-l — a floating white button in the
+            corner, following the desktop mental model (Alexis, 2026-07-07):
+            image-overlay back buttons, not one buried in the white content
+            section below. */}
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          aria-label={t.topbar.back}
+          className="absolute left-3 top-3 z-10 hidden size-11 items-center justify-center rounded-full bg-background text-foreground shadow-lg tablet-l:flex"
+        >
+          <ChevronLeft className="size-5" aria-hidden="true" />
+        </button>
         <Carousel images={product.images} alt={product.name} t={t} />
       </div>
 
       {/* Right column on tablet-l: its own scroller with the CTA pinned to its
           bottom (not the viewport). On phone/tablet-p it's just the normal flow. */}
       <div className="tablet-l:flex tablet-l:h-full tablet-l:min-h-0 tablet-l:flex-col">
-        {/* Back + cart live at the top of the right column on tablet-l. (The
-            global top bar still carries them until the nav-reflow step empties
-            it on tablet-l; this is the home they move to.) */}
-        <div className="hidden items-center justify-between border-b px-2 py-2 tablet-l:flex">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label={t.topbar.back}
-            className="flex size-11 items-center justify-center text-foreground"
-          >
-            <ChevronLeft className="size-5" aria-hidden="true" />
-          </button>
-          {role === 'buyer' && (
+        {/* Brand + cart live here on tablet-l, replacing the (now hidden) global
+            top bar for this route — back moved onto the image (Alexis, 2026-07-07). */}
+        <div className="hidden grid-cols-[2.75rem_1fr_2.75rem] items-center border-b px-1 py-2 tablet-l:grid">
+          <span aria-hidden="true" />
+          <span className="truncate text-center text-lg font-bold text-primary">
+            {activeCatalog.brand}
+          </span>
+          {role === 'buyer' ? (
             <Link
               to="/carrito"
               aria-label={t.topbar.cartAria(cartCount)}
@@ -198,6 +213,8 @@ export function ProductDetailScreen() {
                 </span>
               )}
             </Link>
+          ) : (
+            <span aria-hidden="true" />
           )}
         </div>
 

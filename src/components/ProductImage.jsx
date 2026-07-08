@@ -52,8 +52,9 @@ export function ProductImage({ src, alt, aspect, className }) {
       loading="lazy"
       onLoad={onLoad}
       onError={() => setFailed(true)}
+      draggable={false}
       className={cn(
-        'w-full bg-muted object-cover',
+        'w-full select-none bg-muted object-cover',
         // decode-then-fade — opacity flips on load (instant under reduced motion,
         // since only the transition is motion-safe gated)
         'opacity-0 motion-safe:transition-opacity motion-safe:duration-500 motion-safe:ease-out',

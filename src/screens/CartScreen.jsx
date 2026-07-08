@@ -106,69 +106,82 @@ export function CartScreen() {
   const ivaIncluded = Math.round((subtotal * IVA_RATE) / (1 + IVA_RATE))
 
   return (
-    <div className="flex flex-col gap-6 p-4 pb-10">
+    // tablet-l: two columns — products left (less actionable, read-only list),
+    // summary + CTAs right (actionable, right-hand-reachable — same rule
+    // applied to the order-progress screen). Phone/tablet-p keep the single
+    // stacked column. (Alexis, 2026-07-07)
+    <div className="flex flex-col gap-6 p-4 pb-10 tablet-l:grid tablet-l:grid-cols-[1fr_22rem] tablet-l:items-start tablet-l:gap-8">
       {placed && (
-        <div className="fixed inset-0 z-50 mx-auto flex max-w-md flex-col items-center justify-center gap-3 bg-background/90 backdrop-blur-sm">
+        // fixed + inset-0 alone (no mx-auto/max-w-md fighting the centering) —
+        // that combination was resolving to a left-hugged, low-sitting box
+        // instead of true center on tablet-l. The animation itself also scales
+        // up on tablet-l instead of staying phone-sized (Alexis, 2026-07-07).
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-background/90 backdrop-blur-sm">
           <div className="relative flex items-center justify-center">
-            <span className="absolute size-16 rounded-full bg-success/30 success-burst" aria-hidden="true" />
-            <SuccessCheck size={64} />
+            <span className="absolute size-16 rounded-full bg-success/30 success-burst tablet-l:size-24" aria-hidden="true" />
+            <SuccessCheck size={64} className="tablet-l:hidden" />
+            <SuccessCheck size={96} className="hidden tablet-l:block" />
           </div>
-          <p className="text-sm font-semibold text-success">{t.cart.orderPlaced}</p>
+          <p className="text-sm font-semibold text-success tablet-l:text-base">{t.cart.orderPlaced}</p>
         </div>
       )}
 
       {/* Selections grouped by catalog */}
-      {groups.map(({ catalog, lines }) => (
-        <section key={catalog.id} aria-label={catalog.brand}>
-          <h2 className="border-b pb-2 text-sm font-semibold text-muted-foreground">
-            {catalog.brand} · {catalog.name}
-          </h2>
-          <ul className="divide-y">
-            {lines.map((item) => (
-              <CartLine key={item.key} item={item} onRemove={() => remove(item.key)} t={t} />
-            ))}
-          </ul>
-        </section>
-      ))}
-
-      {/* Cart summary */}
-      <div className="flex items-center justify-between border-t pt-4">
-        <span className="text-lg font-semibold">{t.cart.total}</span>
-        <span className="text-2xl font-bold text-primary">{mxn(total)}</span>
+      <div className="flex flex-col gap-6">
+        {groups.map(({ catalog, lines }) => (
+          <section key={catalog.id} aria-label={catalog.brand}>
+            <h2 className="border-b pb-2 text-sm font-semibold text-muted-foreground">
+              {catalog.brand} · {catalog.name}
+            </h2>
+            <ul className="divide-y">
+              {lines.map((item) => (
+                <CartLine key={item.key} item={item} onRemove={() => remove(item.key)} t={t} />
+              ))}
+            </ul>
+          </section>
+        ))}
       </div>
 
-      {/* Purchase details — revealed as you scroll past the summary */}
-      <section aria-label={t.cart.purchaseDetails} className="rounded-xl bg-muted p-4">
-        <h2 className="mb-3 font-semibold">{t.cart.purchaseDetails}</h2>
-        <dl className="flex flex-col gap-2 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">{t.cart.subtotal}</dt>
-            <dd>{mxn(subtotal)}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">{t.cart.shipping}</dt>
-            <dd>{shipping === 0 ? t.cart.free : mxn(shipping)}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">{t.cart.ivaIncluded}</dt>
-            <dd>{mxn(ivaIncluded)}</dd>
-          </div>
-          <div className="mt-1 flex justify-between border-t pt-2 text-base font-semibold">
-            <dt>{t.cart.totalToPay}</dt>
-            <dd className="text-primary">{mxn(total)}</dd>
-          </div>
-        </dl>
-        {shipping > 0 && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            {t.cart.freeShippingFrom(mxn(FREE_SHIPPING_FROM))}
-          </p>
-        )}
-
-        <div className="mt-4 flex flex-col gap-2">
-          <Button className="w-full" onClick={handlePlace}>{t.cart.placeOrder}</Button>
-          <Button variant="secondary" className="w-full">{t.cart.pay}</Button>
+      <div className="flex flex-col gap-6 tablet-l:sticky tablet-l:top-[4.5rem]">
+        {/* Cart summary */}
+        <div className="flex items-center justify-between border-t pt-4 tablet-l:border-t-0 tablet-l:pt-0">
+          <span className="text-lg font-semibold">{t.cart.total}</span>
+          <span className="text-2xl font-bold text-primary">{mxn(total)}</span>
         </div>
-      </section>
+
+        {/* Purchase details — revealed as you scroll past the summary */}
+        <section aria-label={t.cart.purchaseDetails} className="rounded-xl bg-muted p-4">
+          <h2 className="mb-3 font-semibold">{t.cart.purchaseDetails}</h2>
+          <dl className="flex flex-col gap-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">{t.cart.subtotal}</dt>
+              <dd>{mxn(subtotal)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">{t.cart.shipping}</dt>
+              <dd>{shipping === 0 ? t.cart.free : mxn(shipping)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">{t.cart.ivaIncluded}</dt>
+              <dd>{mxn(ivaIncluded)}</dd>
+            </div>
+            <div className="mt-1 flex justify-between border-t pt-2 text-base font-semibold">
+              <dt>{t.cart.totalToPay}</dt>
+              <dd className="text-primary">{mxn(total)}</dd>
+            </div>
+          </dl>
+          {shipping > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {t.cart.freeShippingFrom(mxn(FREE_SHIPPING_FROM))}
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-col gap-2">
+            <Button className="w-full" onClick={handlePlace}>{t.cart.placeOrder}</Button>
+            <Button variant="secondary" className="w-full">{t.cart.pay}</Button>
+          </div>
+        </section>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { MessageCircle } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { MessageCircle, ChevronLeft } from 'lucide-react'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
 import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
@@ -52,6 +52,7 @@ export function PedidosScreen() {
   const { role, buyerClientId, sellerId } = useSessionStore()
   const orders = useOrdersStore((s) => s.orders)
   const clients = useClientsStore((s) => s.clients)
+  const navigate = useNavigate()
   const t = useT()
   const clientName = (id) => clients.find((c) => c.id === id)?.name ?? t.pedidos.client
   const clientSeller = (id) => clients.find((c) => c.id === id)?.sellerId
@@ -65,6 +66,17 @@ export function PedidosScreen() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
+      {/* Explicit way back to the catalog on tablet-l — the floating nav's own
+          Catálogo tab already does this, but Alexis wanted a direct top-left
+          back button too (2026-07-07). */}
+      <button
+        type="button"
+        onClick={() => navigate('/app')}
+        aria-label={t.topbar.back}
+        className="hidden size-11 items-center justify-center self-start rounded-full text-foreground hover:bg-muted tablet-l:flex"
+      >
+        <ChevronLeft className="size-5" aria-hidden="true" />
+      </button>
       <h1 className="text-2xl font-bold">{isBuyer ? t.pedidos.myOrders : t.pedidos.title}</h1>
       {visible.length === 0 ? (
         <p className="text-sm text-muted-foreground">

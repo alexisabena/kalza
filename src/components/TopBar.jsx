@@ -65,6 +65,10 @@ export function TopBar() {
   const isCheckout = pathname.startsWith('/pago/')
   // The cart belongs to the buyer; the vendedora shares instead of buying
   const showCart = role === 'buyer' && !isCart && !isShare && !isSettings && !isCheckout
+  // Product detail owns a full-height, edge-to-edge carousel on tablet-l — its
+  // own local header (back / brand / cart) replaces this spanning one instead
+  // of sitting below an emptied-out copy of it (Alexis, 2026-07-07).
+  const ownsHeaderOnTabletL = pathname.startsWith('/producto')
 
   return (
     <>
@@ -74,7 +78,8 @@ export function TopBar() {
           'tablet-p:max-w-none tablet-l:max-w-none',
           'motion-safe:transition-transform motion-safe:duration-250 motion-safe:ease-out',
           // tablet-l-scoped, so phone/tablet-p/desk never hide the header (D4)
-          headerHidden && 'tablet-l:-translate-y-full'
+          headerHidden && 'tablet-l:-translate-y-full',
+          ownsHeaderOnTabletL && 'tablet-l:hidden'
         )}
       >
         {showBack ? (
@@ -93,10 +98,9 @@ export function TopBar() {
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label={t.topbar.menu}
-            // tablet-l: the hamburger EXITS to its edge (left) + fades, heading
-            // toward where it reappears in the floating nav (§6bis). opacity keeps
-            // the grid cell so the brand stays centered.
-            className="flex size-12 items-center justify-center text-foreground motion-safe:transition-[transform,opacity] motion-safe:[transition-duration:var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-in)] tablet-l:pointer-events-none tablet-l:-translate-x-16 tablet-l:opacity-0"
+            // Stays put on tablet-l too (Alexis, 2026-07-07) — it opens the same
+            // CatalogDrawer as on phone; the floating nav no longer duplicates it.
+            className="flex size-12 items-center justify-center text-foreground"
           >
             <Menu className="size-5" aria-hidden="true" />
           </button>

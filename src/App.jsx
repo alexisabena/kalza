@@ -126,7 +126,15 @@ function MobileApp() {
         }
       >
         <TopBar />
-        <main className={`${onDesktop ? 'h-full overflow-y-auto' : ''} ${immersive ? 'pt-14' : 'pb-[60px] pt-14 tablet-l:pb-24'}`}>
+        <main
+          className={`${onDesktop ? 'h-full overflow-y-auto' : ''} ${
+            immersive
+              ? pathname.startsWith('/producto')
+                ? 'pt-14 tablet-l:pt-0'
+                : 'pt-14'
+              : 'pb-[60px] pt-14 tablet-l:pb-24'
+          }`}
+        >
           <Routes>
             <Route path="/app" element={<Home />} />
             <Route path="/catalogo" element={<CatalogoScreen />} />

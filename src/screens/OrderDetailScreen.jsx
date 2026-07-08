@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Send, Check, HandCoins, Truck } from 'lucide-react'
+import { Send, Check, HandCoins, Truck, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useClientsStore } from '@/stores/clientsStore'
@@ -64,83 +64,124 @@ export function OrderDetailScreen() {
   }
 
   return (
-    <div className={cn('flex flex-col gap-5 p-4', isBuyer ? 'pb-10' : 'pb-28')}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold">
-            {isBuyer ? t.orderDetail.myOrder : client?.name ?? t.pedidos.client}
-          </h1>
-          <p className="text-sm text-muted-foreground">{formatDate(order.date)}</p>
+    // tablet-l, buyer only: product list stays left; progress indicator + CTA
+    // move right, replacing where the CTA used to sit (the more "actionable"
+    // items live on the right — same rule as the cart screen). Retailer keeps
+    // the single stacked column (display:contents makes the grid wrappers
+    // invisible to it, so nothing here reorders its flow). (Alexis, 2026-07-07)
+    <div
+      className={cn(
+        'flex flex-col gap-5 p-4',
+        isBuyer ? 'pb-10' : 'pb-28',
+        isBuyer && 'tablet-l:grid tablet-l:grid-cols-[1fr_22rem] tablet-l:items-start tablet-l:gap-x-8 tablet-l:gap-y-5'
+      )}
+    >
+      {/* Immersive view — no floating nav on tablet-l, so this is the only way
+          out of the screen (Alexis, 2026-07-07: "I must stop here, I can't go
+          back"). */}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        aria-label={t.topbar.back}
+        className={cn(
+          'hidden size-11 items-center justify-center self-start rounded-full text-foreground hover:bg-muted tablet-l:flex',
+          isBuyer && 'tablet-l:col-span-2 tablet-l:row-start-1'
+        )}
+      >
+        <ChevronLeft className="size-5" aria-hidden="true" />
+      </button>
+
+      <div className={isBuyer ? 'flex flex-col gap-5 tablet-l:col-start-1 tablet-l:row-start-2' : 'contents'}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold">
+              {isBuyer ? t.orderDetail.myOrder : client?.name ?? t.pedidos.client}
+            </h1>
+            <p className="text-sm text-muted-foreground">{formatDate(order.date)}</p>
+          </div>
+          <StatusChip status={status} />
         </div>
-        <StatusChip status={status} />
+
+        {/* ── Role actions ──────────────────────────────────────────── */}
+
+        {/* Seller waits on the wholesaler, then moves the order physically */}
+        {role === 'retailer' && status === 'pedido' && (
+          <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
+            {t.orderDetail.waitingWholesaler}
+          </p>
+        )}
+        {role === 'retailer' && status === 'pagado' && (
+          <Button className="w-full" onClick={() => collect(order.id)}>
+            <Truck aria-hidden="true" /> {t.orderDetail.markCollected}
+          </Button>
+        )}
+        {role === 'retailer' && status === 'recolectado' && (
+          <Button className="w-full" onClick={() => deliver(order.id)}>
+            <Check aria-hidden="true" /> {t.orderDetail.markDelivered}
+          </Button>
+        )}
       </div>
 
-      {/* ── Role actions ──────────────────────────────────────────── */}
+      <div
+        className={
+          isBuyer
+            ? 'flex flex-col gap-4 tablet-l:col-start-2 tablet-l:row-start-2 tablet-l:row-span-2 tablet-l:sticky tablet-l:top-[4.5rem]'
+            : 'contents'
+        }
+      >
+        {/* Progress first, CTA below it — a call to action reads better closer
+            to the thumb than stacked above the stepper (Alexis, 2026-07-07,
+            all breakpoints). */}
+        {isBuyer && <OrderProgress order={order} variant="buyer" />}
 
-      {/* Seller waits on the wholesaler, then moves the order physically */}
-      {role === 'retailer' && status === 'pedido' && (
-        <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
-          {t.orderDetail.waitingWholesaler}
-        </p>
-      )}
-      {role === 'retailer' && status === 'pagado' && (
-        <Button className="w-full" onClick={() => collect(order.id)}>
-          <Truck aria-hidden="true" /> {t.orderDetail.markCollected}
-        </Button>
-      )}
-      {role === 'retailer' && status === 'recolectado' && (
-        <Button className="w-full" onClick={() => deliver(order.id)}>
-          <Check aria-hidden="true" /> {t.orderDetail.markDelivered}
-        </Button>
-      )}
+        {/* Buyer: payment commitment within the window — or the order is lost */}
+        {isBuyer && status === 'apartado' && (
+          <div className="flex flex-col gap-2 rounded-xl border border-primary bg-primary/5 p-3">
+            <p className="text-sm">
+              {t.orderDetail.reservedPrefix}{' '}
+              <strong>{formatDeadline(order.payDeadline)}</strong> {t.orderDetail.reservedSuffix}
+            </p>
+            <Button className="w-full" onClick={() => navigate(`/pago/${order.id}`)}>
+              <HandCoins aria-hidden="true" /> {t.orderDetail.payAmount(mxn(total))}
+            </Button>
+          </div>
+        )}
+      </div>
 
-      {/* Buyer: payment commitment within the window — or the order is lost */}
-      {isBuyer && status === 'apartado' && (
-        <div className="flex flex-col gap-2 rounded-xl border border-primary bg-primary/5 p-3">
-          <p className="text-sm">
-            {t.orderDetail.reservedPrefix}{' '}
-            <strong>{formatDeadline(order.payDeadline)}</strong> {t.orderDetail.reservedSuffix}
-          </p>
-          <Button className="w-full" onClick={() => navigate(`/pago/${order.id}`)}>
-            <HandCoins aria-hidden="true" /> {t.orderDetail.payAmount(mxn(total))}
-          </Button>
-        </div>
-      )}
-
-      {isBuyer && <OrderProgress order={order} variant="buyer" />}
-
-      <section aria-label={t.orderDetail.items}>
-        <ul className="divide-y">
-          {order.items.map((item) => {
-            const product = getProduct(item.productId)
-            if (!product) return null
-            return (
-              <li
-                key={`${item.productId}|${item.colorId}|${item.size}`}
-                className="flex items-center gap-3 py-3"
-              >
-                <ProductImage
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="aspect-square w-14 shrink-0 rounded-lg"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{product.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {colors[item.colorId].name} · {t.cart.size} {item.size}
-                    {item.qty > 1 && ` · ${t.cart.pieces(item.qty)}`}
-                  </p>
-                </div>
-                <p className="font-semibold text-primary">{mxn(product.price * item.qty)}</p>
-              </li>
-            )
-          })}
-        </ul>
-        <div className="flex items-center justify-between border-t pt-3">
-          <span className="font-semibold">{t.orderDetail.total}</span>
-          <span className="text-xl font-bold text-primary">{mxn(total)}</span>
-        </div>
-      </section>
+      <div className={isBuyer ? 'flex flex-col gap-5 tablet-l:col-start-1 tablet-l:row-start-3' : 'contents'}>
+        <section aria-label={t.orderDetail.items}>
+          <ul className="divide-y">
+            {order.items.map((item) => {
+              const product = getProduct(item.productId)
+              if (!product) return null
+              return (
+                <li
+                  key={`${item.productId}|${item.colorId}|${item.size}`}
+                  className="flex items-center gap-3 py-3"
+                >
+                  <ProductImage
+                    src={product.images[0]}
+                    alt={product.name}
+                    className="aspect-square w-14 shrink-0 rounded-lg"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{product.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {colors[item.colorId].name} · {t.cart.size} {item.size}
+                      {item.qty > 1 && ` · ${t.cart.pieces(item.qty)}`}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-primary">{mxn(product.price * item.qty)}</p>
+                </li>
+              )
+            })}
+          </ul>
+          <div className="flex items-center justify-between border-t pt-3">
+            <span className="font-semibold">{t.orderDetail.total}</span>
+            <span className="text-xl font-bold text-primary">{mxn(total)}</span>
+          </div>
+        </section>
+      </div>
 
       {/* Coordination thread — seller ↔ wholesaler only, never the buyer */}
       {!isBuyer && (

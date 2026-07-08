@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
-import { Check, ChevronRight, Store, CalendarClock } from 'lucide-react'
+import { Check, ChevronRight, ChevronLeft, Store, CalendarClock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useOrdersStore, effectiveStatus } from '@/stores/ordersStore'
@@ -112,7 +112,11 @@ export function CheckoutScreen() {
   // ── Success ──────────────────────────────────────────────────────────────
   if (stage === 'success') {
     return (
-      <div className="flex flex-col items-center gap-4 p-8 text-center">
+      // fixed inset-0 (not viewport units) so it centers against the desktop
+      // stage's own bezel, same reasoning as ProductDetailScreen — and pushes
+      // the animation + button down toward thumb reach instead of clustering
+      // under the header (Alexis, 2026-07-07).
+      <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
         <SuccessCheck size={64} />
         <h1 className="text-xl font-bold">{t.checkout.success}</h1>
         <p className="text-sm text-muted-foreground">{t.checkout.successNote}</p>
@@ -128,6 +132,14 @@ export function CheckoutScreen() {
     const ref = oxxoReference(order.id)
     return (
       <div className="flex flex-col gap-4 p-4">
+        <button
+          type="button"
+          onClick={() => setStage('select')}
+          aria-label={t.topbar.back}
+          className="hidden size-11 items-center justify-center self-start rounded-full text-foreground hover:bg-muted tablet-l:flex"
+        >
+          <ChevronLeft className="size-5" aria-hidden="true" />
+        </button>
         <div className="rounded-xl border bg-card p-5">
           <div className="mb-4 flex items-center gap-2">
             <Store className="size-5 text-primary" aria-hidden="true" />
@@ -173,6 +185,14 @@ export function CheckoutScreen() {
     })
     return (
       <div className="flex flex-col gap-4 p-4">
+        <button
+          type="button"
+          onClick={() => setStage('select')}
+          aria-label={t.topbar.back}
+          className="hidden size-11 items-center justify-center self-start rounded-full text-foreground hover:bg-muted tablet-l:flex"
+        >
+          <ChevronLeft className="size-5" aria-hidden="true" />
+        </button>
         <div className="rounded-xl border bg-card p-5">
           <div className="mb-1 flex items-center gap-2">
             <CalendarClock className="size-5 text-primary" aria-hidden="true" />
@@ -201,9 +221,29 @@ export function CheckoutScreen() {
   }
 
   // ── Summary + gateway selector ───────────────────────────────────────────
+  // tablet-l: summary stays left (read-only, less actionable); payment type +
+  // Pagar CTA move to a sticky right column, CTA anchored at its bottom for
+  // thumb reach — same rule as cart/order-detail (Alexis, 2026-07-07).
   return (
-    <div className="p-4 tablet-p:mx-auto tablet-p:max-w-xl tablet-p:p-6 tablet-l:max-w-2xl">
-      <section aria-label={t.checkout.summary} className="mb-6 rounded-xl border bg-card p-4">
+    <div
+      className={cn(
+        'p-4 tablet-p:mx-auto tablet-p:max-w-xl tablet-p:p-6',
+        'tablet-l:mx-auto tablet-l:grid tablet-l:max-w-4xl tablet-l:grid-cols-[1fr_22rem] tablet-l:items-start tablet-l:gap-x-8 tablet-l:gap-y-5 tablet-l:p-8'
+      )}
+    >
+      <button
+        type="button"
+        onClick={() => navigate(`/pedido/${id}`)}
+        aria-label={t.topbar.back}
+        className="hidden size-11 items-center justify-center self-start rounded-full text-foreground hover:bg-muted tablet-l:col-span-2 tablet-l:row-start-1 tablet-l:flex"
+      >
+        <ChevronLeft className="size-5" aria-hidden="true" />
+      </button>
+
+      <section
+        aria-label={t.checkout.summary}
+        className="mb-6 rounded-xl border bg-card p-4 tablet-l:col-start-1 tablet-l:row-start-2"
+      >
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {t.checkout.summary}
         </h2>
@@ -239,42 +279,44 @@ export function CheckoutScreen() {
         </div>
       </section>
 
-      <section aria-label={t.checkout.choose}>
-        <h2 className="mb-1 text-sm font-semibold">{t.checkout.choose}</h2>
-        <p className="mb-3 text-xs text-muted-foreground">{t.checkout.roadmapNote}</p>
-        <div className="flex flex-col gap-2">
-          {GATEWAYS.map(({ id: gid }) => {
-            const active = selected === gid
-            return (
-              <button
-                key={gid}
-                type="button"
-                onClick={() => setSelected(gid)}
-                aria-pressed={active}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left',
-                  active && 'border-primary ring-1 ring-primary'
-                )}
-              >
-                <GatewayLogo id={gid} />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium">{t.gateways[gid]}</span>
-                  <span className="block text-xs text-muted-foreground">{t.gatewayDesc[gid]}</span>
-                </span>
-                {active ? (
-                  <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />
-                ) : (
-                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </section>
+      <div className="flex flex-col gap-4 tablet-l:col-start-2 tablet-l:row-start-2 tablet-l:sticky tablet-l:top-[4.5rem]">
+        <section aria-label={t.checkout.choose}>
+          <h2 className="mb-1 text-sm font-semibold">{t.checkout.choose}</h2>
+          <p className="mb-3 text-xs text-muted-foreground">{t.checkout.roadmapNote}</p>
+          <div className="flex flex-col gap-2">
+            {GATEWAYS.map(({ id: gid }) => {
+              const active = selected === gid
+              return (
+                <button
+                  key={gid}
+                  type="button"
+                  onClick={() => setSelected(gid)}
+                  aria-pressed={active}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left',
+                    active && 'border-primary ring-1 ring-primary'
+                  )}
+                >
+                  <GatewayLogo id={gid} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium">{t.gateways[gid]}</span>
+                    <span className="block text-xs text-muted-foreground">{t.gatewayDesc[gid]}</span>
+                  </span>
+                  {active ? (
+                    <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                  ) : (
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </section>
 
-      <Button className="mt-6 w-full" size="lg" onClick={onPay}>
-        {t.checkout.payNow} {mxn(total)}
-      </Button>
+        <Button className="mt-6 w-full tablet-l:mt-0" size="lg" onClick={onPay}>
+          {t.checkout.payNow} {mxn(total)}
+        </Button>
+      </div>
     </div>
   )
 }
