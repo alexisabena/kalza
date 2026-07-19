@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Check, Share2, ChevronLeft, ShoppingBag } from 'lucide-react'
+import { Check, Share2, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore, selectCount } from '@/stores/cartStore'
 import { useCatalogStore } from '@/stores/catalogStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useSharesStore } from '@/stores/sharesStore'
+import { BackButtonFloating } from '@/components/BackButtonFloating'
 import { getProduct } from '@/data/products'
 import { colors } from '@/data/colors'
 import { sizeRuns } from '@/data/sizes'
@@ -179,14 +180,7 @@ export function ProductDetailScreen() {
             corner, following the desktop mental model (Alexis, 2026-07-07):
             image-overlay back buttons, not one buried in the white content
             section below. */}
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          aria-label={t.topbar.back}
-          className="absolute left-3 top-3 z-10 hidden size-11 items-center justify-center rounded-full bg-background text-foreground shadow-lg tablet-l:flex"
-        >
-          <ChevronLeft className="size-5" aria-hidden="true" />
-        </button>
+        <BackButtonFloating onClick={() => navigate(-1)} className="absolute left-3 top-3 z-10" />
         <Carousel images={product.images} alt={product.name} t={t} />
       </div>
 
