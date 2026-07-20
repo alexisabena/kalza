@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Check, ChevronRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useSessionStore } from '@/stores/sessionStore'
@@ -248,12 +249,25 @@ function BuyerSettings() {
 
 export function SettingsScreen() {
   const role = useSessionStore((s) => s.role)
+  const navigate = useNavigate()
   const t = useT()
 
   return (
     // Centered + width-capped on larger classes so the form stays readable
     // instead of stretching across a tablet.
     <div className="p-4 tablet-p:mx-auto tablet-p:max-w-xl tablet-p:p-6 tablet-l:max-w-2xl">
+      {/* TopBar's own back arrow fades out at tablet-l (immersive views carry
+          their own) — Ajustes had no fallback, so there was no way back on
+          tablet-l. Redirects to catalog home, same as Pedidos' tablet-l
+          shortcut (Alexis, 2026-07-20). */}
+      <button
+        type="button"
+        onClick={() => navigate('/app')}
+        aria-label={t.topbar.back}
+        className="hidden size-11 items-center justify-center self-start rounded-full text-foreground hover:bg-muted tablet-l:mb-2 tablet-l:flex"
+      >
+        <ChevronLeft className="size-5" aria-hidden="true" />
+      </button>
       {role === 'retailer' ? <SellerSettings /> : <BuyerSettings />}
       <p className="px-1 text-xs text-muted-foreground">{t.ajustes.demoNote}</p>
     </div>
